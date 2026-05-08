@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Dashboard | Admin Panel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0ea5e9;
+            --primary-dark: #0284c7;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg-dark: #0f172a;
+            --bg-darker: #030712;
+            --card-bg: rgba(15, 23, 42, 0.65);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg-darker) 0%, #1a1f3a 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(14, 165, 233, 0.2) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.2) 0%, transparent 50%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Header */
+        .header {
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Glass Card */
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 20px;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.3), transparent, rgba(139, 92, 246, 0.3));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            box-shadow: 0 8px 20px rgba(14, 165, 233, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(14, 165, 233, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid var(--secondary);
+            color: var(--secondary);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(139, 92, 246, 0.3);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-card {
+            background: rgba(14, 165, 233, 0.1);
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Filters */
+        .filter-section {
+            position: relative;
+            z-index: 1;
+            margin-bottom: 20px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            padding: 10px 12px;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(30, 41, 59, 0.8);
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        thead {
+            background: rgba(14, 165, 233, 0.1);
+            border-bottom: 2px solid var(--border);
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--primary);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        tbody tr:hover {
+            background: rgba(14, 165, 233, 0.1);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+        }
+
+        /* Section Title */
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Charts (Simple Bar) */
+        .chart-container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .chart-bar {
+            display: flex;
+            align-items: flex-end;
+            gap: 15px;
+            height: 150px;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: rgba(14, 165, 233, 0.1);
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .bar {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .bar-fill {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 4px 4px 0 0;
+            min-height: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .bar:hover .bar-fill {
+            box-shadow: 0 0 10px rgba(14, 165, 233, 0.5);
+        }
+
+        .bar-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .bar-value {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 15px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header h1 {
+                font-size: 1.6rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 0.75rem;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border: 4px solid rgba(14, 165, 233, 0.3);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+            position: relative;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-gradient"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📊 Attendance Dashboard</h1>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="refreshData()">⟳ Refresh</button>
+                <button class="btn btn-secondary" onclick="exportAllData()">📥 Export All</button>
+                <button class="btn btn-secondary" onclick="goBackToGenerator()">← Back</button>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="glass-card">
+            <div class="section-title">📈 Statistics</div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="statTotal">0</div>
+                    <div class="stat-label">Total Submissions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statToday">0</div>
+                    <div class="stat-label">Today</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statUnique">0</div>
+                    <div class="stat-label">Unique Students</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statLinks">0</div>
+                    <div class="stat-label">Links Created</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="glass-card">
+            <div class="flex-between">
+                <div class="section-title">🔍 Filters</div>
+                <button class="btn btn-secondary" onclick="clearFilters()">Clear All</button>
+            </div>
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label>Date</label>
+                    <input type="date" id="filterDate" onchange="applyFilters()">
+                </div>
+                <div class="filter-group">
+                    <label>Teacher</label>
+                    <input type="text" id="filterTeacher" placeholder="Enter teacher name" onchange="applyFilters()">
+                </div>
+                <div class="filter-group">
+                    <label>Semester</label>
+                    <select id="filterSemester" onchange="applyFilters()">
+                        <option value="">All Semesters</option>
+                        <option value="Semester1">Semester 1</option>
+                        <option value="Semester2">Semester 2</option>
+                        <option value="Semester3">Semester 3</option>
+                        <option value="Semester4">Semester 4</option>
+                        <option value="Semester5">Semester 5</option>
+                        <option value="Semester6">Semester 6</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Roll Number</label>
+                    <input type="text" id="filterRoll" placeholder="Enter roll number" onchange="applyFilters()">
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Records -->
+        <div class="glass-card">
+            <div class="flex-between">
+                <div class="section-title">📋 Attendance Records</div>
+                <span style="color: var(--text-secondary); font-size: 0.9rem;" id="recordCount">0 records</span>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Roll No</th>
+                            <th>Name</th>
+                            <th>Semester</th>
+                            <th>Subject</th>
+                            <th>Teacher</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recordsBody">
+                        <tr>
+                            <td colspan="8" class="empty-state">
+                                <div class="loading">
+                                    <div class="spinner"></div>
+                                    <p style="margin-top: 15px;">Loading records...</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Analytics Charts -->
+        <div class="glass-card">
+            <div class="section-title">📊 Analytics by Teacher</div>
+            <div class="chart-container">
+                <div id="teacherChart" style="position: relative; z-index: 1;">
+                    <div class="empty-state">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- By Semester -->
+        <div class="glass-card">
+            <div class="section-title">📊 Analytics by Semester</div>
+            <div class="chart-container">
+                <div id="semesterChart" style="position: relative; z-index: 1;">
+                    <div class="empty-state">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js"></script>
+
+    <script src="attendance-link-system.js"></script>
+    <script>
+        let allRecords = [];
+        let filteredRecords = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = document.getElementById('filterDate');
+            const date = new Date();
+            today.value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+            
+            loadAllData();
+            setInterval(loadAllData, 30000);
+        });
+
+        async function loadAllData() {
+            try {
+                allRecords = await attendanceLinkSystem.getAttendanceRecords();
+                const analytics = await attendanceLinkSystem.getAnalytics();
+
+                // Update stats
+                document.getElementById('statTotal').textContent = allRecords.length;
+                document.getElementById('statToday').textContent = analytics.todayAttendance;
+                document.getElementById('statUnique').textContent = analytics.uniqueStudents;
+                document.getElementById('statLinks').textContent = analytics.totalLinksCreated;
+
+                // Apply filters and display
+                applyFilters();
+                updateCharts(analytics);
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+
+        async function applyFilters() {
+            const date = document.getElementById('filterDate').value;
+            const teacher = document.getElementById('filterTeacher').value;
+            const semester = document.getElementById('filterSemester').value;
+            const roll = document.getElementById('filterRoll').value;
+
+            const filters = {};
+            if (date) {
+                const d = new Date(date);
+                filters.date = attendanceLinkSystem.formatDate(d);
+            }
+            if (teacher) filters.teacher = teacher;
+            if (semester) filters.semester = semester;
+            if (roll) filters.rollNumber = roll.toUpperCase();
+
+            filteredRecords = await attendanceLinkSystem.getAttendanceRecords(filters);
+            displayRecords(filteredRecords);
+        }
+
+        function displayRecords(records) {
+            const tbody = document.getElementById('recordsBody');
+            document.getElementById('recordCount').textContent = `${records.length} records`;
+
+            if (records.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <p>No records found</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = records.map(r => `
+                <tr>
+                    <td><strong>${r.rollNumber}</strong></td>
+                    <td>${r.studentName}</td>
+                    <td>${r.semester}</td>
+                    <td>${r.subject}</td>
+                    <td>${r.teacher}</td>
+                    <td>${r.date}</td>
+                    <td>${r.time}</td>
+                    <td><span class="badge badge-success">✓ ${r.status.toUpperCase()}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function updateCharts(analytics) {
+            // Teacher Chart
+            const teacherChart = document.getElementById('teacherChart');
+            if (analytics.byTeacher && Object.keys(analytics.byTeacher).length > 0) {
+                const maxValue = Math.max(...Object.values(analytics.byTeacher));
+                teacherChart.innerHTML = `
+                    <div class="chart-bar">
+                        ${Object.entries(analytics.byTeacher).map(([teacher, count]) => `
+                            <div class="bar">
+                                <div class="bar-fill" style="height: ${(count / maxValue) * 100}px;"></div>
+                                <div class="bar-value">${count}</div>
+                                <div class="bar-label">${teacher.substring(0, 12)}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                teacherChart.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📊</div>
+                        <p>No data available</p>
+                    </div>
+                `;
+            }
+
+            // Semester Chart
+            const semesterChart = document.getElementById('semesterChart');
+            if (analytics.bySemester && Object.keys(analytics.bySemester).length > 0) {
+                const maxValue = Math.max(...Object.values(analytics.bySemester));
+                semesterChart.innerHTML = `
+                    <div class="chart-bar">
+                        ${Object.entries(analytics.bySemester).map(([sem, count]) => `
+                            <div class="bar">
+                                <div class="bar-fill" style="height: ${(count / maxValue) * 100}px;"></div>
+                                <div class="bar-value">${count}</div>
+                                <div class="bar-label">${sem}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                semesterChart.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📊</div>
+                        <p>No data available</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function exportAllData() {
+            const fileName = `attendance_full_${new Date().toISOString().split('T')[0]}.csv`;
+            await attendanceLinkSystem.exportAttendanceCSV(filteredRecords.length > 0 ? filteredRecords : allRecords, fileName);
+        }
+
+        function clearFilters() {
+            document.getElementById('filterDate').value = '';
+            document.getElementById('filterTeacher').value = '';
+            document.getElementById('filterSemester').value = '';
+            document.getElementById('filterRoll').value = '';
+            allRecords = [];
+            loadAllData();
+        }
+
+        function refreshData() {
+            loadAllData();
+        }
+
+        function goBackToGenerator() {
+            window.location.href = 'attendance-link-admin.html';
+        }
+    </script>
+</body>
+</html>
