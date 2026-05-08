@@ -702,13 +702,8 @@
         <span id="toastMessage"></span>
     </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.14.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.14.0/firebase-database.js"></script>
-
-    <!-- Firebase Config -->
     <script>
-        const firebaseConfig = {
+        window.FIREBASE_CONFIG = {
             apiKey: "AIzaSyBcvlqhgQGsI7OxhDuVhdzJSNVXlKDPlr0",
             authDomain: "bca-store-attendance.firebaseapp.com",
             projectId: "bca-store-attendance",
@@ -717,8 +712,6 @@
             databaseURL: "https://bca-store-attendance-default-rtdb.firebaseio.com",
             appId: "1:476733937282:web:ce6c0e23e25f97bfaaea47"
         };
-
-        firebase.initializeApp(firebaseConfig);
     </script>
 
     <!-- Attendance Link System -->

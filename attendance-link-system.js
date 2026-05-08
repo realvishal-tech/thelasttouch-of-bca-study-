@@ -13,7 +13,7 @@ class AttendanceLinkSystem {
         this.LINK_LENGTH = 10;
         this.serverTimeOffset = 0;
         this._cache = {};
-        this.initializeDatabase();
+        this.readyPromise = this.initializeDatabase();
     }
 
     /**
@@ -66,7 +66,7 @@ class AttendanceLinkSystem {
     initializeDatabase() {
         try {
             // If firebase is not yet present, load scripts lazily
-            const init = async () => {
+            return (async () => {
                 if (typeof firebase === 'undefined') {
                     await this.loadFirebaseScripts();
                 }
@@ -91,11 +91,16 @@ class AttendanceLinkSystem {
                 } else {
                     console.error('❌ Firebase SDK not initialized');
                 }
-            };
-
-            init();
+            })();
         } catch (error) {
             console.error('❌ Database Init Error:', error);
+            return Promise.resolve();
+        }
+    }
+
+    async ensureReady() {
+        if (this.readyPromise) {
+            await this.readyPromise;
         }
     }
 
@@ -163,6 +168,7 @@ class AttendanceLinkSystem {
      */
     async createAttendanceLink(config) {
         try {
+            await this.ensureReady();
             const token = this.generateUniqueToken();
             const now = this.getCurrentTimestamp();
             const expiryTime = now + this.EXPIRY_MINUTES * 60000;
@@ -209,6 +215,7 @@ class AttendanceLinkSystem {
      */
     async validateLink(token) {
         try {
+            await this.ensureReady();
             if (!token || token.length !== this.LINK_LENGTH) {
                 return { valid: false, reason: 'Invalid token format' };
             }
@@ -258,6 +265,7 @@ class AttendanceLinkSystem {
      */
     async submitAttendance(token, attendanceData, options = {}) {
         try {
+            await this.ensureReady();
             const now = this.getCurrentTimestamp();
 
             // Reuse a fresh snapshot from the form page when available.
@@ -359,6 +367,7 @@ class AttendanceLinkSystem {
      */
     async deactivateLink(token) {
         try {
+            await this.ensureReady();
             await this.linksRef.child(token).update({
                 status: 'disabled',
                 disabledAt: this.getCurrentTimestamp()
@@ -374,6 +383,7 @@ class AttendanceLinkSystem {
      */
     async getLinkDetails(token) {
         try {
+            await this.ensureReady();
             const cacheKey = 'link:' + token;
             const cached = this.cacheGet(cacheKey);
             if (cached) return cached;
@@ -393,6 +403,7 @@ class AttendanceLinkSystem {
      */
     async getActiveLinks() {
         try {
+            await this.ensureReady();
             const cacheKey = 'activeLinks';
             const cached = this.cacheGet(cacheKey);
             if (cached) return cached;
@@ -424,6 +435,7 @@ class AttendanceLinkSystem {
      */
     async getAttendanceRecords(filters = {}) {
         try {
+            await this.ensureReady();
             let query = this.attendanceRef;
             const snapshot = await query.once('value');
             let records = Object.values(snapshot.val() || {});
@@ -457,6 +469,7 @@ class AttendanceLinkSystem {
      */
     async exportAttendanceCSV(records, filename = 'attendance.csv') {
         try {
+            await this.ensureReady();
             if (!records || records.length === 0) {
                 console.warn('⚠️ No records to export');
                 return;
@@ -500,6 +513,7 @@ class AttendanceLinkSystem {
      */
     async getAnalytics() {
         try {
+            await this.ensureReady();
             const linksSnapshot = await this.linksRef.once('value');
             const links = linksSnapshot.val() || {};
             const recordsSnapshot = await this.attendanceRef.once('value');
@@ -564,8 +578,10 @@ class AttendanceLinkSystem {
      * Real-time Listener for Link Status
      */
     onLinkStatusChange(token, callback) {
+        this.ensureReady().then(() => {
         this.linksRef.child(token).on('value', (snapshot) => {
             callback(snapshot.val());
+        });
         });
     }
 
@@ -573,8 +589,10 @@ class AttendanceLinkSystem {
      * Real-time Listener for New Attendance
      */
     onNewAttendance(callback) {
+        this.ensureReady().then(() => {
         this.attendanceRef.on('child_added', (snapshot) => {
             callback(snapshot.val());
+        });
         });
     }
 
@@ -582,6 +600,7 @@ class AttendanceLinkSystem {
      * Cancel Link Listener
      */
     cancelLinkListener(token) {
+        if (!this.linksRef) return;
         this.linksRef.child(token).off();
     }
 
@@ -589,6 +608,7 @@ class AttendanceLinkSystem {
      * Cancel Attendance Listener
      */
     cancelAttendanceListener() {
+        if (!this.attendanceRef) return;
         this.attendanceRef.off();
     }
 
@@ -596,6 +616,7 @@ class AttendanceLinkSystem {
      * Cleanup Expired Links Periodically
      */
     cleanupExpiredLinks() {
+        this.ensureReady().then(() => {
         setInterval(async () => {
             try {
                 const snapshot = await this.linksRef.once('value');
@@ -617,6 +638,7 @@ class AttendanceLinkSystem {
                 console.error('❌ Cleanup Error:', error);
             }
         }, 300000); // Run every 5 minutes to reduce DB load
+        });
     }
 
     /* Simple in-memory cache helpers */

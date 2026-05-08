@@ -570,6 +570,7 @@
                         Share with students: <span id="fullUrl" style="color: var(--primary);"></span>
                     </p>
                     <button class="copy-btn" onclick="copyToClipboard()" id="copyBtn">📋 Copy Link</button>
+                    <button class="copy-btn" onclick="shareToWhatsApp()" id="whatsappBtn" style="margin-left: 10px; background: #25d366;">💬 Share on WhatsApp</button>
                 </div>
 
                 <div style="margin-top: 20px; padding: 15px; background: rgba(14, 165, 233, 0.1); border-radius: 8px; border-left: 4px solid var(--primary);">
@@ -648,10 +649,18 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js"></script>
+    <!-- Firebase Config -->
+    <script>
+        window.FIREBASE_CONFIG = {
+            apiKey: "AIzaSyBcvlqhgQGsI7OxhDuVhdzJSNVXlKDPlr0",
+            authDomain: "bca-store-attendance.firebaseapp.com",
+            projectId: "bca-store-attendance",
+            storageBucket: "bca-store-attendance.appspot.com",
+            messagingSenderId: "476733937282",
+            databaseURL: "https://bca-store-attendance-default-rtdb.firebaseio.com",
+            appId: "1:476733937282:web:ce6c0e23e25f97bfaaea47"
+        };
+    </script>
 
     <!-- Custom Scripts -->
     <script src="attendance-link-system.js"></script>
@@ -873,16 +882,63 @@
 
         function copyToClipboard() {
             const fullUrl = document.getElementById('fullUrl').textContent;
-            navigator.clipboard.writeText(fullUrl).then(() => {
-                const btn = document.getElementById('copyBtn');
-                btn.textContent = '✅ Copied!';
-                btn.classList.add('copied');
-                setTimeout(() => {
-                    btn.textContent = '📋 Copy Link';
-                    btn.classList.remove('copied');
-                }, 2000);
-                showToast('✅ Link copied to clipboard!', 'success');
-            });
+            if (!fullUrl) return;
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(fullUrl).then(() => {
+                    const btn = document.getElementById('copyBtn');
+                    btn.textContent = '✅ Copied!';
+                    btn.classList.add('copied');
+                    setTimeout(() => {
+                        btn.textContent = '📋 Copy Link';
+                        btn.classList.remove('copied');
+                    }, 2000);
+                    showToast('✅ Link copied to clipboard!', 'success');
+                });
+                return;
+            }
+
+            const tempInput = document.createElement('input');
+            tempInput.value = fullUrl;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            const btn = document.getElementById('copyBtn');
+            btn.textContent = '✅ Copied!';
+            btn.classList.add('copied');
+            setTimeout(() => {
+                btn.textContent = '📋 Copy Link';
+                btn.classList.remove('copied');
+            }, 2000);
+            showToast('✅ Link copied to clipboard!', 'success');
+        }
+
+        function shareToWhatsApp() {
+            const fullUrl = document.getElementById('fullUrl').textContent;
+            const token = document.getElementById('linkValue').textContent;
+            if (!fullUrl || !token) return;
+
+            const subject = document.getElementById('subject').value || 'Attendance';
+            const semester = document.getElementById('semester').value || 'Semester';
+            const teacher = document.getElementById('teacherName').value.trim() || 'Teacher';
+            const message = `Attendance link for ${semester} - ${subject} by ${teacher}%0A%0ALink: ${fullUrl}%0AToken: ${token}`;
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`Attendance link for ${semester} - ${subject} by ${teacher}\n\nLink: ${fullUrl}\nToken: ${token}`)}`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: `Attendance Link - ${subject}`,
+                    text: `Attendance link for ${semester} - ${subject} by ${teacher}`,
+                    url: fullUrl
+                }).catch(() => {
+                    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+                });
+                return;
+            }
+
+            window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+            showToast('✅ WhatsApp share opened!', 'success');
         }
 
         async function exportTodayAttendance() {
@@ -948,8 +1004,8 @@
         // Initial load
         refreshActiveLinks();
         updateStats();
-        setInterval(updateStats, 10000);
-        setInterval(refreshActiveLinks, 20000);
+        setInterval(updateStats, 30000);
+        setInterval(refreshActiveLinks, 60000);
     </script>
 </body>
 </html>
