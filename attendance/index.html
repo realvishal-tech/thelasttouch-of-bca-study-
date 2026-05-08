@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BCA Attendance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: "#eff6ff",
+              100: "#dbeafe",
+              500: "#2563eb",
+              600: "#1d4ed8",
+              700: "#1e40af"
+            }
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-900">
+  <div class="mx-auto flex min-h-screen max-w-5xl items-center justify-center px-4 py-10">
+    <div class="w-full max-w-2xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-blue-100/70">
+      <div class="bg-gradient-to-r from-brand-700 to-brand-500 px-6 py-8 text-white sm:px-10">
+        <p class="text-sm font-medium uppercase tracking-[0.3em] text-blue-100">BCA Attendance</p>
+        <h1 class="mt-3 text-3xl font-bold">Student Attendance Form</h1>
+        <p class="mt-2 text-sm text-blue-50">Submit your attendance before the link expires.</p>
+      </div>
+
+      <div id="loadingState" class="px-6 py-12 text-center sm:px-10">
+        <div class="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-blue-100 border-t-brand-600"></div>
+        <p class="mt-4 text-sm font-medium text-slate-600">Checking attendance link...</p>
+      </div>
+
+      <div id="successState" class="hidden px-6 py-12 text-center sm:px-10">
+        <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-3xl text-emerald-600">✓</div>
+        <h2 class="mt-5 text-2xl font-semibold text-slate-900">Attendance Submitted Successfully</h2>
+        <p class="mt-3 text-sm text-slate-600">Your attendance has been recorded for this class.</p>
+      </div>
+
+      <div id="formState" class="hidden px-6 py-8 sm:px-10 sm:py-10">
+        <div class="grid gap-4 rounded-2xl border border-blue-100 bg-blue-50 p-5 text-sm text-slate-700 sm:grid-cols-2">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-600">Teacher</p>
+            <p id="teacherName" class="mt-1 font-semibold text-slate-900"></p>
+          </div>
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-600">Subject</p>
+            <p id="subjectName" class="mt-1 font-semibold text-slate-900"></p>
+          </div>
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-600">Semester</p>
+            <p id="semesterName" class="mt-1 font-semibold text-slate-900"></p>
+          </div>
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-600">Time Left</p>
+            <p id="countdown" class="mt-1 font-semibold text-amber-600">00:00</p>
+          </div>
+        </div>
+
+        <div id="messageBox" class="mt-5 hidden rounded-2xl border px-4 py-3 text-sm font-medium"></div>
+
+        <form id="attendanceForm" class="mt-6 space-y-5">
+          <div>
+            <label for="studentNameInput" class="mb-2 block text-sm font-semibold text-slate-700">Student Name</label>
+            <input id="studentNameInput" type="text" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-blue-100" placeholder="Enter your full name">
+          </div>
+          <div>
+            <label for="rollNumberInput" class="mb-2 block text-sm font-semibold text-slate-700">Roll Number</label>
+            <input id="rollNumberInput" type="text" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-blue-100" placeholder="Enter your roll number">
+          </div>
+          <div>
+            <label for="semesterInput" class="mb-2 block text-sm font-semibold text-slate-700">Semester</label>
+            <select id="semesterInput" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-blue-100"></select>
+          </div>
+          <button id="submitButton" type="submit" class="w-full rounded-2xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-blue-100">
+            Submit Attendance
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="/attendance/app.js"></script>
+  <script>
+    const app = new BCAAttendance.AttendanceApp();
+    const token = new URLSearchParams(window.location.search).get("token");
+    const loadingState = document.getElementById("loadingState");
+    const formState = document.getElementById("formState");
+    const successState = document.getElementById("successState");
+    const attendanceForm = document.getElementById("attendanceForm");
+    const messageBox = document.getElementById("messageBox");
+    const submitButton = document.getElementById("submitButton");
+    const semesterInput = document.getElementById("semesterInput");
+    let stopCountdown = null;
+
+    BCAAttendance.SEMESTERS.forEach((semester) => {
+      const option = document.createElement("option");
+      option.value = semester;
+      option.textContent = semester;
+      semesterInput.appendChild(option);
+    });
+
+    function showMessage(message, type) {
+      const styles = {
+        error: "border-red-200 bg-red-50 text-red-600",
+        success: "border-emerald-200 bg-emerald-50 text-emerald-700"
+      };
+
+      messageBox.className = `mt-5 rounded-2xl border px-4 py-3 text-sm font-medium ${styles[type] || styles.success}`;
+      messageBox.textContent = message;
+      messageBox.classList.remove("hidden");
+    }
+
+    async function loadAttendanceLink() {
+      if (!token) {
+        app.redirectTo404("missing");
+        return;
+      }
+
+      try {
+        const validation = await app.validateLink(token);
+        if (!validation.valid) {
+          app.redirectTo404(validation.reason);
+          return;
+        }
+
+        const link = validation.link;
+        document.getElementById("teacherName").textContent = link.teacherName;
+        document.getElementById("subjectName").textContent = link.subject;
+        document.getElementById("semesterName").textContent = link.semester;
+        semesterInput.value = link.semester;
+
+        stopCountdown = app.startCountdown(link.expiryTime, {
+          onTick(value) {
+            document.getElementById("countdown").textContent = value;
+          },
+          async onExpire() {
+            await app.markLinkInactive(token, { expiredTime: Date.now() });
+            app.redirectTo404("expired");
+          }
+        });
+
+        loadingState.classList.add("hidden");
+        formState.classList.remove("hidden");
+      } catch (error) {
+        console.error(error);
+        app.redirectTo404("expired");
+      }
+    }
+
+    attendanceForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      submitButton.disabled = true;
+      submitButton.textContent = "Submitting...";
+      messageBox.classList.add("hidden");
+
+      try {
+        const result = await app.submitAttendance({
+          token,
+          studentName: document.getElementById("studentNameInput").value,
+          rollNumber: document.getElementById("rollNumberInput").value,
+          semester: semesterInput.value
+        });
+
+        if (!result.success) {
+          if (result.expired) {
+            app.redirectTo404("expired");
+            return;
+          }
+
+          showMessage(result.message, "error");
+          submitButton.disabled = false;
+          submitButton.textContent = "Submit Attendance";
+          return;
+        }
+
+        if (stopCountdown) {
+          stopCountdown();
+        }
+
+        formState.classList.add("hidden");
+        successState.classList.remove("hidden");
+      } catch (error) {
+        console.error(error);
+        showMessage("Unable to submit attendance right now.", "error");
+        submitButton.disabled = false;
+        submitButton.textContent = "Submit Attendance";
+      }
+    });
+
+    loadAttendanceLink();
+  </script>
+</body>
+</html>
