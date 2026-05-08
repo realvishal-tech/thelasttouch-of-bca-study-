@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Attendance | BCA Store</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔗</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0ea5e9;
+            --primary-dark: #0284c7;
+            --primary-light: #38bdf8;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg-dark: #0f172a;
+            --bg-darker: #030712;
+            --card-bg: rgba(15, 23, 42, 0.65);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg-darker) 0%, #1a1f3a 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(14, 165, 233, 0.2) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.2) 0%, transparent 50%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Main Glass Card */
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 20px;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.3), transparent, rgba(139, 92, 246, 0.3));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Timer Section */
+        .timer-section {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(14, 165, 233, 0.15);
+            border: 2px solid rgba(14, 165, 233, 0.3);
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .timer-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--success), var(--primary), var(--warning), var(--danger));
+            animation: timerFlow 5s linear forwards;
+        }
+
+        @keyframes timerFlow {
+            from {
+                left: 100%;
+            }
+            to {
+                left: 0;
+            }
+        }
+
+        .timer-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .timer-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+            animation: timerPulse 1s infinite;
+        }
+
+        .timer-value.warning {
+            color: var(--warning);
+        }
+
+        .timer-value.danger {
+            color: var(--danger);
+        }
+
+        @keyframes timerPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .timer-message {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Student Info Section */
+        .student-info {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 15px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .student-avatar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .avatar-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 15px;
+            background: rgba(30, 41, 59, 0.8);
+            border: 2px solid var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(14, 165, 233, 0.3);
+        }
+
+        .avatar-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-placeholder {
+            font-size: 2.5rem;
+        }
+
+        .student-details {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .detail-row {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+        }
+
+        .detail-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            min-width: 100px;
+            font-weight: 600;
+        }
+
+        .detail-value {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .detail-value.highlight {
+            color: var(--primary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Form Grid */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 12px 16px;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(30, 41, 59, 0.8);
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+        }
+
+        .form-group input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .form-group input:disabled,
+        .form-group select:disabled {
+            background: rgba(30, 41, 59, 0.3);
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        /* Read-only Field */
+        .read-only-field {
+            padding: 12px 16px;
+            background: rgba(14, 165, 233, 0.1);
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            border-radius: 12px;
+            color: var(--primary);
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            cursor: not-allowed;
+        }
+
+        /* Button Group */
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            box-shadow: 0 8px 20px rgba(14, 165, 233, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(14, 165, 233, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid var(--secondary);
+            color: var(--secondary);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: rgba(139, 92, 246, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Success & Error States */
+        .success-state {
+            text-align: center;
+            padding: 60px 40px;
+        }
+
+        .success-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            animation: successBounce 0.6s ease;
+        }
+
+        @keyframes successBounce {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .success-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--success);
+            margin-bottom: 10px;
+        }
+
+        .success-message {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        /* Error State */
+        .error-state {
+            text-align: center;
+            padding: 60px 40px;
+        }
+
+        .error-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            animation: errorShake 0.5s ease;
+        }
+
+        @keyframes errorShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .error-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--danger);
+            margin-bottom: 10px;
+        }
+
+        .error-message {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 20px;
+            max-width: 400px;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+            display: none;
+        }
+
+        .toast.show {
+            display: block;
+        }
+
+        .toast.error {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .toast.success {
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(14, 165, 233, 0.3);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Loading State */
+        .loading-state {
+            text-align: center;
+            padding: 60px 40px;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(14, 165, 233, 0.3);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        /* Info Box */
+        .info-box {
+            background: rgba(14, 165, 233, 0.1);
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px 15px;
+            }
+
+            .glass-card {
+                padding: 25px;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .timer-value {
+                font-size: 2.5rem;
+            }
+
+            .student-info {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .student-avatar {
+                align-items: center;
+            }
+
+            .detail-row {
+                justify-content: center;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-gradient"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔗 Generate Attendance</h1>
+            <p>Limited Time Link Access - 5 Minutes Only</p>
+        </div>
+
+        <!-- Main Card -->
+        <div class="glass-card">
+            <!-- Loading State -->
+            <div id="loadingState" class="card-content loading-state" style="display: none;">
+                <div class="loading-spinner"></div>
+                <p>Validating your access link...</p>
+            </div>
+
+            <!-- Timer Section -->
+            <div id="timerSection" class="timer-section" style="display: none;">
+                <div class="timer-label">⏱️ Time Remaining</div>
+                <div class="timer-value" id="timerValue">05:00</div>
+                <div class="timer-message" id="timerMessage">Access expires when timer reaches 00:00</div>
+            </div>
+
+            <!-- Form Content -->
+            <div id="formContent" class="card-content" style="display: none;">
+                <!-- Student Info Section -->
+                <div class="student-info">
+                    <div class="student-avatar">
+                        <div class="avatar-image" id="avatarImage">
+                            <span class="avatar-placeholder">👤</span>
+                        </div>
+                    </div>
+                    <div class="student-details">
+                        <div class="detail-row">
+                            <div class="detail-label">Semester</div>
+                            <div class="detail-value" id="semesterDisplay">-</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Subject</div>
+                            <div class="detail-value" id="subjectDisplay">-</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Teacher</div>
+                            <div class="detail-value" id="teacherDisplay">-</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Date</div>
+                            <div class="detail-value highlight" id="dateDisplay">-</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Time</div>
+                            <div class="detail-value highlight" id="timeDisplay">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info Box -->
+                <div class="info-box">
+                    ✅ This link is valid for <strong>5 minutes only</strong>. Please submit your attendance before the timer expires.
+                </div>
+
+                <!-- Form -->
+                <form id="attendanceForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="studentName">Student Name *</label>
+                            <input type="text" id="studentName" name="studentName" placeholder="Enter your name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="rollNumber">Roll Number *</label>
+                            <input type="text" id="rollNumber" name="rollNumber" placeholder="Enter your roll number" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" name="email" placeholder="Enter your email">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="mobileNumber">Mobile Number</label>
+                            <input type="tel" id="mobileNumber" name="mobileNumber" placeholder="Enter your mobile number">
+                        </div>
+                    </div>
+
+                    <!-- Hidden Fields -->
+                    <input type="hidden" id="token" name="token">
+                    <input type="hidden" id="semester" name="semester">
+                    <input type="hidden" id="subject" name="subject">
+                    <input type="hidden" id="teacher" name="teacher">
+
+                    <!-- Button Group -->
+                    <div class="button-group">
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <span class="spinner" id="spinner" style="display: none;"></span>
+                            <span id="submitText">Submit Attendance</span>
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="goBackBtn">Go Back Home</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Success State -->
+            <div id="successState" class="card-content success-state" style="display: none;">
+                <div class="success-icon">✅</div>
+                <div class="success-title">Attendance Recorded!</div>
+                <div class="success-message">
+                    Thank you! Your attendance has been successfully submitted and recorded in the admin dashboard. You can now close this window.
+                </div>
+                <button type="button" class="btn btn-secondary" onclick="window.location.href='index.html'" style="width: 100%; margin-top: 20px;">
+                    Return to Home
+                </button>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" class="card-content error-state" style="display: none;">
+                <div class="error-icon">❌</div>
+                <div class="error-title">Access Not Available</div>
+                <div class="error-message" id="errorMessage">
+                    This link has expired or is no longer valid. Please request a new link from your instructor.
+                </div>
+                <button type="button" class="btn btn-secondary" onclick="window.location.href='index.html'" style="width: 100%; margin-top: 20px;">
+                    Return to Home
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <span id="toastMessage"></span>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.14.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.14.0/firebase-database.js"></script>
+
+    <!-- Firebase Config -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBcvlqhgQGsI7OxhDuVhdzJSNVXlKDPlr0",
+            authDomain: "bca-store-attendance.firebaseapp.com",
+            projectId: "bca-store-attendance",
+            storageBucket: "bca-store-attendance.appspot.com",
+            messagingSenderId: "476733937282",
+            databaseURL: "https://bca-store-attendance-default-rtdb.firebaseio.com",
+            appId: "1:476733937282:web:ce6c0e23e25f97bfaaea47"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+    </script>
+
+    <!-- Attendance Link System -->
+    <script src="attendance-link-system.js"></script>
+
+    <!-- Main Script -->
+    <script>
+        class LinkGeneratorPage {
+            constructor() {
+                this.attendanceSystem = new AttendanceLinkSystem();
+                this.token = null;
+                this.linkData = null;
+                this.expiryTime = null;
+                this.timerInterval = null;
+                this.maxSeconds = 300; // 5 minutes
+                this.remainingSeconds = this.maxSeconds;
+
+                this.initializeEventListeners();
+                this.initializePage();
+            }
+
+            /**
+             * Initialize Event Listeners
+             */
+            initializeEventListeners() {
+                document.getElementById('attendanceForm').addEventListener('submit', (e) => this.handleSubmit(e));
+                document.getElementById('goBackBtn').addEventListener('click', () => window.location.href = 'index.html');
+            }
+
+            /**
+             * Initialize Page - Get Token from URL
+             */
+            initializePage() {
+                const params = new URLSearchParams(window.location.search);
+                this.token = params.get('token');
+
+                if (!this.token) {
+                    this.showError('No access link provided. Please use the link sent by your instructor.');
+                    return;
+                }
+
+                this.validateAndLoadLink();
+            }
+
+            /**
+             * Validate and Load Link Data
+             */
+            async validateAndLoadLink() {
+                document.getElementById('loadingState').style.display = 'block';
+
+                try {
+                    const validation = await this.attendanceSystem.validateLink(this.token);
+
+                    if (!validation.valid) {
+                        this.showError(validation.reason || 'This link is no longer valid.');
+                        return;
+                    }
+
+                    this.linkData = validation.data;
+                    this.expiryTime = this.linkData.expiresAt;
+                    this.remainingSeconds = Math.floor((this.expiryTime - new Date().getTime()) / 1000);
+
+                    if (this.remainingSeconds <= 0) {
+                        this.showError('This link has already expired.');
+                        return;
+                    }
+
+                    // Populate Form with Link Data
+                    this.populateFormData();
+
+                    // Show Form
+                    document.getElementById('loadingState').style.display = 'none';
+                    document.getElementById('timerSection').style.display = 'block';
+                    document.getElementById('formContent').style.display = 'block';
+
+                    // Start Timer
+                    this.startTimer();
+                } catch (error) {
+                    console.error('Error validating link:', error);
+                    this.showError('Error loading your attendance link. Please try again.');
+                }
+            }
+
+            /**
+             * Populate Form with Link Data
+             */
+            populateFormData() {
+                // Set hidden fields
+                document.getElementById('token').value = this.token;
+                document.getElementById('semester').value = this.linkData.semester || '';
+                document.getElementById('subject').value = this.linkData.subject || '';
+                document.getElementById('teacher').value = this.linkData.teacher || '';
+
+                // Display Student Info
+                document.getElementById('semesterDisplay').textContent = this.linkData.semester || 'Not Specified';
+                document.getElementById('subjectDisplay').textContent = this.linkData.subject || 'Not Specified';
+                document.getElementById('teacherDisplay').textContent = this.linkData.teacher || 'Not Specified';
+
+                // Set current date and time with ISO format
+                const now = new Date();
+                const dateStr = this.formatDate(now);
+                const timeStr = this.formatTime(now);
+
+                document.getElementById('dateDisplay').textContent = dateStr;
+                document.getElementById('timeDisplay').textContent = timeStr;
+            }
+
+            /**
+             * Format Date (DD/MM/YYYY)
+             */
+            formatDate(date) {
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${day}/${month}/${year}`;
+            }
+
+            /**
+             * Format Time (HH:MM:SS)
+             */
+            formatTime(date) {
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                const seconds = String(date.getSeconds()).padStart(2, '0');
+                return `${hours}:${minutes}:${seconds}`;
+            }
+
+            /**
+             * Start Countdown Timer
+             */
+            startTimer() {
+                this.timerInterval = setInterval(() => {
+                    this.remainingSeconds--;
+
+                    if (this.remainingSeconds <= 0) {
+                        this.handleExpiry();
+                        return;
+                    }
+
+                    this.updateTimerDisplay();
+
+                    // Change color based on time remaining
+                    const timerValue = document.getElementById('timerValue');
+                    if (this.remainingSeconds <= 60) {
+                        timerValue.classList.add('danger');
+                        timerValue.classList.remove('warning');
+                    } else if (this.remainingSeconds <= 120) {
+                        timerValue.classList.add('warning');
+                        timerValue.classList.remove('danger');
+                    }
+                }, 1000);
+            }
+
+            /**
+             * Update Timer Display
+             */
+            updateTimerDisplay() {
+                const minutes = Math.floor(this.remainingSeconds / 60);
+                const seconds = this.remainingSeconds % 60;
+                const timeStr = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                document.getElementById('timerValue').textContent = timeStr;
+            }
+
+            /**
+             * Handle Timer Expiry
+             */
+            handleExpiry() {
+                clearInterval(this.timerInterval);
+                document.getElementById('timerSection').style.display = 'none';
+                document.getElementById('formContent').style.display = 'none';
+                this.showError('Your access time has expired. Please request a new link from your instructor.');
+            }
+
+            /**
+             * Handle Form Submission
+             */
+            async handleSubmit(e) {
+                e.preventDefault();
+
+                // Validate form
+                const studentName = document.getElementById('studentName').value.trim();
+                const rollNumber = document.getElementById('rollNumber').value.trim();
+
+                if (!studentName || !rollNumber) {
+                    this.showToast('Please fill in all required fields', 'error');
+                    return;
+                }
+
+                // Disable submit button
+                const submitBtn = document.getElementById('submitBtn');
+                const spinner = document.getElementById('spinner');
+                const submitText = document.getElementById('submitText');
+
+                submitBtn.disabled = true;
+                spinner.style.display = 'inline-block';
+                submitText.textContent = 'Submitting...';
+
+                try {
+                    const attendanceData = {
+                        studentName: studentName,
+                        rollNumber: rollNumber,
+                        email: document.getElementById('email').value.trim(),
+                        mobileNumber: document.getElementById('mobileNumber').value.trim(),
+                        semester: this.linkData.semester,
+                        subject: this.linkData.subject,
+                        teacher: this.linkData.teacher,
+                        date: document.getElementById('dateDisplay').textContent,
+                        time: document.getElementById('timeDisplay').textContent
+                    };
+
+                    const result = await this.attendanceSystem.submitAttendance(this.token, attendanceData);
+
+                    if (result.success) {
+                        // Clear timer
+                        clearInterval(this.timerInterval);
+
+                        // Show success state
+                        document.getElementById('timerSection').style.display = 'none';
+                        document.getElementById('formContent').style.display = 'none';
+                        document.getElementById('successState').style.display = 'block';
+
+                        // Auto redirect after 5 seconds
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 5000);
+                    } else {
+                        this.showToast(result.message || 'Error submitting attendance', 'error');
+                        submitBtn.disabled = false;
+                        spinner.style.display = 'none';
+                        submitText.textContent = 'Submit Attendance';
+                    }
+                } catch (error) {
+                    console.error('Submission error:', error);
+                    this.showToast('Error submitting attendance. Please try again.', 'error');
+                    submitBtn.disabled = false;
+                    spinner.style.display = 'none';
+                    submitText.textContent = 'Submit Attendance';
+                }
+            }
+
+            /**
+             * Show Error State
+             */
+            showError(message) {
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('timerSection').style.display = 'none';
+                document.getElementById('formContent').style.display = 'none';
+                document.getElementById('errorState').style.display = 'block';
+                document.getElementById('errorMessage').textContent = message;
+                clearInterval(this.timerInterval);
+            }
+
+            /**
+             * Show Toast Notification
+             */
+            showToast(message, type = 'info') {
+                const toast = document.getElementById('toast');
+                const toastMessage = document.getElementById('toastMessage');
+
+                toastMessage.textContent = message;
+                toast.className = `toast show ${type}`;
+
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 4000);
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            new LinkGeneratorPage();
+        });
+    </script>
+</body>
+</html>
