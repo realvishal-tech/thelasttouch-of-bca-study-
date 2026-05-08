@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: "#eff6ff",
+              100: "#dbeafe",
+              500: "#2563eb",
+              600: "#1d4ed8",
+              700: "#1e40af"
+            }
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-900">
+  <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div class="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-[0.25em] text-brand-600">Hidden Admin Dashboard</p>
+        <h1 class="mt-2 text-3xl font-bold text-slate-900">BCA Attendance Management System</h1>
+        <p class="mt-2 text-sm text-slate-600">Generate temporary links, share on WhatsApp, and manage attendance records.</p>
+      </div>
+      <button id="logoutButton" class="hidden rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-600">Lock Dashboard</button>
+    </div>
+
+    <div id="authCard" class="mx-auto max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-lg shadow-blue-100/70">
+      <div class="text-center">
+        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-2xl text-brand-600">🔐</div>
+        <h2 class="mt-4 text-2xl font-semibold text-slate-900">Access Required</h2>
+        <p class="mt-2 text-sm text-slate-600">Enter the admin access code to unlock the attendance dashboard.</p>
+      </div>
+      <form id="authForm" class="mt-6 space-y-4">
+        <div>
+          <label for="passcodeInput" class="mb-2 block text-sm font-semibold text-slate-700">Admin Access Code</label>
+          <input id="passcodeInput" type="password" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-blue-100" placeholder="Enter access code">
+        </div>
+        <div id="authMessage" class="hidden rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600"></div>
+        <button type="submit" class="w-full rounded-2xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-blue-100">Unlock Dashboard</button>
+      </form>
+    </div>
+
+    <div id="dashboard" class="hidden space-y-8">
+      <section class="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-lg shadow-blue-100/60">
+          <div class="mb-6">
+            <h2 class="text-xl font-semibold text-slate-900">Generate Attendance Link</h2>
+            <p class="mt-1 text-sm text-slate-600">Create one temporary link and share it directly on WhatsApp.</p>
+          </div>
+
+          <form id="generatorForm" class="grid gap-5 sm:grid-cols-2">
+            <div>
+              <label for="teacherSelect" class="mb-2 block text-sm font-semibold text-slate-700">Teacher Name</label>
+              <select id="teacherSelect" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-blue-100"></select>
+            </div>
+            <div>
+              <label for="semesterSelect" class="mb-2 block text-sm font-semibold text-slate-700">Semester</label>
+              <select id="semesterSelect" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-blue-100"></select>
+            </div>
+            <div>
+              <label for="subjectSelect" class="mb-2 block text-sm font-semibold text-slate-700">Subject</label>
+              <select id="subjectSelect" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-blue-100"></select>
+            </div>
+            <div>
+              <label for="expirySelect" class="mb-2 block text-sm font-semibold text-slate-700">Link Expiry Time</label>
+              <select id="expirySelect" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-blue-100">
+                <option value="5">5 Minutes</option>
+                <option value="10">10 Minutes</option>
+                <option value="15">15 Minutes</option>
+                <option value="30">30 Minutes</option>
+                <option value="60">60 Minutes</option>
+              </select>
+            </div>
+            <div class="sm:col-span-2">
+              <button id="generateButton" type="submit" class="w-full rounded-2xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-blue-100">Generate Attendance Link</button>
+            </div>
+          </form>
+
+          <div id="generatorMessage" class="mt-5 hidden rounded-2xl border px-4 py-3 text-sm font-medium"></div>
+        </div>
+
+        <div id="latestLinkCard" class="rounded-3xl border border-slate-200 bg-white p-6 shadow-lg shadow-blue-100/60">
+          <div class="mb-4">
+            <h2 class="text-xl font-semibold text-slate-900">Latest Temporary Link</h2>
+            <p class="mt-1 text-sm text-slate-600">Share the latest link instantly after generation.</p>
+          </div>
+          <div class="rounded-2xl border border-blue-100 bg-blue-50 p-5">
+            <div class="space-y-3 text-sm">
+              <div>
+                <p class="font-semibold text-brand-600">Teacher</p>
+                <p id="latestTeacher" class="mt-1 text-slate-900">Not generated yet</p>
+              </div>
+              <div>
+                <p class="font-semibold text-brand-600">Subject</p>
+                <p id="latestSubject" class="mt-1 text-slate-900">-</p>
+              </div>
+              <div>
+                <p class="font-semibold text-brand-600">Semester</p>
+                <p id="latestSemester" class="mt-1 text-slate-900">-</p>
+              </div>
+              <div>
+                <p class="font-semibold text-brand-600">Link</p>
+                <p id="latestUrl" class="mt-1 break-all text-slate-900">-</p>
+              </div>
+              <div>
+                <p class="font-semibold text-brand-600">Expires In</p>
+                <p id="latestCountdown" class="mt-1 text-amber-600">-</p>
+              </div>
+            </div>
+          </div>
+          <div class="mt-5 grid gap-3 sm:grid-cols-2">
+            <button id="copyLinkButton" type="button" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-600" disabled>Copy Link</button>
+            <button id="shareWhatsappButton" type="button" class="rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700" disabled>Share on WhatsApp</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-lg shadow-blue-100/60">
+        <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 class="text-xl font-semibold text-slate-900">Attendance Records</h2>
+            <p class="mt-1 text-sm text-slate-600">View, delete, and download submitted attendance data.</p>
+          </div>
+          <button id="downloadButton" type="button" class="rounded-2xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-brand-700">Download Attendance Data</button>
+        </div>
+
+        <div class="grid gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-4">
+          <div>
+            <label for="filterTeacher" class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Teacher</label>
+            <select id="filterTeacher" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-blue-100"></select>
+          </div>
+          <div>
+            <label for="filterSemester" class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Semester</label>
+            <select id="filterSemester" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-blue-100"></select>
+          </div>
+          <div>
+            <label for="filterSubject" class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Subject</label>
+            <input id="filterSubject" type="text" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-blue-100" placeholder="Filter by subject">
+          </div>
+          <div>
+            <label for="filterToken" class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Token ID</label>
+            <input id="filterToken" type="text" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-blue-100" placeholder="Filter by token">
+          </div>
+        </div>
+
+        <div class="mt-5 overflow-x-auto">
+          <table class="min-w-full divide-y divide-slate-200">
+            <thead class="bg-slate-50">
+              <tr class="text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                <th class="px-4 py-3">Student Name</th>
+                <th class="px-4 py-3">Roll Number</th>
+                <th class="px-4 py-3">Semester</th>
+                <th class="px-4 py-3">Subject</th>
+                <th class="px-4 py-3">Teacher</th>
+                <th class="px-4 py-3">Time</th>
+                <th class="px-4 py-3">Token</th>
+                <th class="px-4 py-3">Action</th>
+              </tr>
+            </thead>
+            <tbody id="recordsTableBody" class="divide-y divide-slate-200 bg-white"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-lg shadow-blue-100/60">
+        <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 class="text-xl font-semibold text-slate-900">Temporary Attendance Links</h2>
+            <p class="mt-1 text-sm text-slate-600">Monitor active links and clean up linked attendance records when needed.</p>
+          </div>
+          <button id="refreshButton" type="button" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-600">Refresh Data</button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-slate-200">
+            <thead class="bg-slate-50">
+              <tr class="text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                <th class="px-4 py-3">Teacher</th>
+                <th class="px-4 py-3">Semester</th>
+                <th class="px-4 py-3">Subject</th>
+                <th class="px-4 py-3">Expires</th>
+                <th class="px-4 py-3">Status</th>
+                <th class="px-4 py-3">Link</th>
+                <th class="px-4 py-3">Action</th>
+              </tr>
+            </thead>
+            <tbody id="linksTableBody" class="divide-y divide-slate-200 bg-white"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="/attendance/app.js"></script>
+  <script>
+    const app = new BCAAttendance.AttendanceApp();
+    const authCard = document.getElementById("authCard");
+    const dashboard = document.getElementById("dashboard");
+    const authForm = document.getElementById("authForm");
+    const authMessage = document.getElementById("authMessage");
+    const logoutButton = document.getElementById("logoutButton");
+    const generatorMessage = document.getElementById("generatorMessage");
+    const teacherSelect = document.getElementById("teacherSelect");
+    const semesterSelect = document.getElementById("semesterSelect");
+    const subjectSelect = document.getElementById("subjectSelect");
+    const filterTeacher = document.getElementById("filterTeacher");
+    const filterSemester = document.getElementById("filterSemester");
+    let latestLinkData = null;
+    let stopLatestCountdown = null;
+
+    function populateSelect(element, values, includeAll = false) {
+      element.innerHTML = "";
+      if (includeAll) {
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.textContent = "All";
+        element.appendChild(defaultOption);
+      }
+
+      values.forEach((value) => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        element.appendChild(option);
+      });
+    }
+
+    function populateSubjects() {
+      const semester = semesterSelect.value;
+      const subjects = BCAAttendance.SUBJECTS_BY_SEMESTER[semester] || [];
+      populateSelect(subjectSelect, subjects);
+    }
+
+    function setGeneratorMessage(message, type) {
+      const classes = {
+        success: "border-emerald-200 bg-emerald-50 text-emerald-700",
+        error: "border-red-200 bg-red-50 text-red-600"
+      };
+
+      generatorMessage.className = `mt-5 rounded-2xl border px-4 py-3 text-sm font-medium ${classes[type] || classes.success}`;
+      generatorMessage.textContent = message;
+      generatorMessage.classList.remove("hidden");
+    }
+
+    function setLatestLink(linkData, url) {
+      if (stopLatestCountdown) {
+        stopLatestCountdown();
+      }
+
+      latestLinkData = { ...linkData, url };
+      document.getElementById("latestTeacher").textContent = linkData.teacherName;
+      document.getElementById("latestSubject").textContent = linkData.subject;
+      document.getElementById("latestSemester").textContent = linkData.semester;
+      document.getElementById("latestUrl").textContent = url;
+      document.getElementById("copyLinkButton").disabled = false;
+      document.getElementById("shareWhatsappButton").disabled = false;
+
+      stopLatestCountdown = app.startCountdown(linkData.expiryTime, {
+        onTick(value) {
+          document.getElementById("latestCountdown").textContent = value;
+        },
+        async onExpire() {
+          document.getElementById("latestCountdown").textContent = "Expired";
+          await app.markLinkInactive(linkData.token, { expiredTime: Date.now() });
+          refreshDashboardData();
+        }
+      });
+    }
+
+    function buildFilters() {
+      return {
+        teacherName: filterTeacher.value,
+        semester: filterSemester.value,
+        subject: document.getElementById("filterSubject").value.trim(),
+        tokenId: document.getElementById("filterToken").value.trim()
+      };
+    }
+
+    async function renderRecords() {
+      const records = await app.listRecords(buildFilters());
+      const tableBody = document.getElementById("recordsTableBody");
+
+      if (!records.length) {
+        tableBody.innerHTML = `<tr><td colspan="8" class="px-4 py-8 text-center text-sm text-slate-500">No attendance records found.</td></tr>`;
+        return records;
+      }
+
+      tableBody.innerHTML = records.map((record) => `
+        <tr class="text-sm text-slate-700">
+          <td class="px-4 py-4 font-medium text-slate-900">${record.studentName}</td>
+          <td class="px-4 py-4">${record.rollNumber}</td>
+          <td class="px-4 py-4">${record.semester}</td>
+          <td class="px-4 py-4">${record.subject}</td>
+          <td class="px-4 py-4">${record.teacherName}</td>
+          <td class="px-4 py-4">${record.date}<br><span class="text-xs text-slate-500">${record.time}</span></td>
+          <td class="px-4 py-4 font-mono text-xs text-brand-600">${record.tokenId}</td>
+          <td class="px-4 py-4">
+            <button data-record-id="${record.id}" class="delete-record rounded-xl border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50">Delete</button>
+          </td>
+        </tr>
+      `).join("");
+
+      return records;
+    }
+
+    async function renderLinks() {
+      const links = await app.listLinks();
+      const tableBody = document.getElementById("linksTableBody");
+
+      if (!links.length) {
+        tableBody.innerHTML = `<tr><td colspan="7" class="px-4 py-8 text-center text-sm text-slate-500">No attendance links generated yet.</td></tr>`;
+        return;
+      }
+
+      tableBody.innerHTML = links.map((link) => {
+        const status = app.getLinkStatus(link);
+        const url = app.buildAttendanceUrl(link.token);
+        return `
+          <tr class="text-sm text-slate-700">
+            <td class="px-4 py-4 font-medium text-slate-900">${link.teacherName}</td>
+            <td class="px-4 py-4">${link.semester}</td>
+            <td class="px-4 py-4">${link.subject}</td>
+            <td class="px-4 py-4">${app.formatDateTime(link.expiryTime).date}<br><span class="text-xs text-slate-500">${status.countdown}</span></td>
+            <td class="px-4 py-4">
+              <span class="rounded-full px-3 py-1 text-xs font-semibold ${status.active ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}">${status.label}</span>
+            </td>
+            <td class="px-4 py-4">
+              <button data-link-copy="${url}" class="copy-existing rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-600">Copy Link</button>
+            </td>
+            <td class="px-4 py-4">
+              <div class="flex flex-wrap gap-2">
+                <button data-token="${link.token}" class="share-existing rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700">WhatsApp</button>
+                <button data-token="${link.token}" class="deactivate-link rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-600">Deactivate</button>
+                <button data-token="${link.token}" class="delete-token-records rounded-xl border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50">Delete Records</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    async function refreshDashboardData() {
+      await app.cleanupExpiredLinks();
+      await Promise.all([renderRecords(), renderLinks()]);
+    }
+
+    function showDashboard() {
+      authCard.classList.add("hidden");
+      dashboard.classList.remove("hidden");
+      logoutButton.classList.remove("hidden");
+      refreshDashboardData();
+    }
+
+    authForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      authMessage.classList.add("hidden");
+      const passcode = document.getElementById("passcodeInput").value;
+      const valid = await app.verifyAdminPasscode(passcode);
+
+      if (!valid) {
+        authMessage.textContent = "Invalid access code.";
+        authMessage.classList.remove("hidden");
+        return;
+      }
+
+      sessionStorage.setItem(BCAAttendance.ADMIN_SESSION_KEY, "unlocked");
+      showDashboard();
+    });
+
+    logoutButton.addEventListener("click", () => {
+      sessionStorage.removeItem(BCAAttendance.ADMIN_SESSION_KEY);
+      window.location.reload();
+    });
+
+    semesterSelect.addEventListener("change", populateSubjects);
+
+    document.getElementById("generatorForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      document.getElementById("generateButton").disabled = true;
+      document.getElementById("generateButton").textContent = "Generating...";
+      generatorMessage.classList.add("hidden");
+
+      try {
+        const result = await app.createLink({
+          teacherName: teacherSelect.value,
+          semester: semesterSelect.value,
+          subject: subjectSelect.value,
+          expiryMinutes: document.getElementById("expirySelect").value
+        });
+
+        setLatestLink(result.link, result.url);
+        setGeneratorMessage("Attendance link generated successfully.", "success");
+        await refreshDashboardData();
+      } catch (error) {
+        console.error(error);
+        setGeneratorMessage("Unable to generate the attendance link.", "error");
+      } finally {
+        document.getElementById("generateButton").disabled = false;
+        document.getElementById("generateButton").textContent = "Generate Attendance Link";
+      }
+    });
+
+    document.getElementById("copyLinkButton").addEventListener("click", async () => {
+      if (!latestLinkData) return;
+      await app.copyText(latestLinkData.url);
+      setGeneratorMessage("Attendance link copied successfully.", "success");
+    });
+
+    document.getElementById("shareWhatsappButton").addEventListener("click", () => {
+      if (!latestLinkData) return;
+      app.openWhatsAppShare(latestLinkData);
+    });
+
+    document.getElementById("downloadButton").addEventListener("click", async () => {
+      const records = await app.listRecords(buildFilters());
+      app.downloadCsv(records, `attendance-records-${new Date().toISOString().slice(0, 10)}.csv`);
+    });
+
+    document.getElementById("refreshButton").addEventListener("click", refreshDashboardData);
+
+    [filterTeacher, filterSemester, document.getElementById("filterSubject"), document.getElementById("filterToken")].forEach((element) => {
+      element.addEventListener("input", renderRecords);
+      element.addEventListener("change", renderRecords);
+    });
+
+    document.body.addEventListener("click", async (event) => {
+      const copyButton = event.target.closest(".copy-existing");
+      if (copyButton) {
+        await app.copyText(copyButton.dataset.linkCopy);
+        setGeneratorMessage("Attendance link copied successfully.", "success");
+        return;
+      }
+
+      const shareButton = event.target.closest(".share-existing");
+      if (shareButton) {
+        const link = await app.getLink(shareButton.dataset.token);
+        if (!link) return;
+        app.openWhatsAppShare({
+          teacherName: link.teacherName,
+          semester: link.semester,
+          subject: link.subject,
+          url: app.buildAttendanceUrl(link.token)
+        });
+        return;
+      }
+
+      const deactivateButton = event.target.closest(".deactivate-link");
+      if (deactivateButton) {
+        if (!window.confirm("Deactivate this attendance link?")) return;
+        await app.deactivateLink(deactivateButton.dataset.token);
+        await refreshDashboardData();
+        return;
+      }
+
+      const deleteTokenButton = event.target.closest(".delete-token-records");
+      if (deleteTokenButton) {
+        if (!window.confirm("Delete all attendance records linked to this token?")) return;
+        await app.deleteRecordsByToken(deleteTokenButton.dataset.token);
+        await refreshDashboardData();
+        return;
+      }
+
+      const deleteRecordButton = event.target.closest(".delete-record");
+      if (deleteRecordButton) {
+        if (!window.confirm("Delete this attendance record?")) return;
+        await app.deleteRecord(deleteRecordButton.dataset.recordId);
+        await renderRecords();
+      }
+    });
+
+    populateSelect(teacherSelect, BCAAttendance.TEACHERS);
+    populateSelect(filterTeacher, BCAAttendance.TEACHERS, true);
+    populateSelect(semesterSelect, BCAAttendance.SEMESTERS);
+    populateSelect(filterSemester, BCAAttendance.SEMESTERS, true);
+    populateSubjects();
+
+    if (sessionStorage.getItem(BCAAttendance.ADMIN_SESSION_KEY) === "unlocked") {
+      showDashboard();
+    }
+  </script>
+</body>
+</html>
