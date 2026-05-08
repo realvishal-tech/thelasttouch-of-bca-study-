@@ -1923,7 +1923,7 @@ function adminLogin() {
 }
 
 function applyRoleBasedAccess(role) {
-  const adminTabs = ['manage', 'inbox', 'analytics', 'visitors', 'attendance'];
+  const adminTabs = ['manage', 'inbox', 'analytics', 'visitors'];
   adminTabs.forEach(tab => {
     const btn = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
     if (btn) btn.style.display = role === 'admin' ? 'inline-block' : 'none';
@@ -2049,7 +2049,7 @@ function initAdminPage() {
 
 function switchAdminTab(tab) {
   // Hide all sections and deactivate sidebar items
-  ['dashboard', 'add', 'manage', 'inbox', 'analytics', 'visitors', 'notifications', 'community', 'attendance'].forEach(t => {
+  ['dashboard', 'add', 'manage', 'inbox', 'analytics', 'visitors', 'notifications', 'community'].forEach(t => {
     const el = document.getElementById('admin-tab-' + t);
     if (el) { el.style.display = 'none'; el.classList.remove('active'); }
     const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
@@ -2068,7 +2068,6 @@ function switchAdminTab(tab) {
   if (tab === 'visitors') loadVisitorsList();
   if (tab === 'notifications') loadAdminNotifications();
   if (tab === 'community' && typeof loadAdminCommunityTab === 'function') loadAdminCommunityTab();
-  if (tab === 'attendance' && typeof loadAttendanceRecords === 'function') loadAttendanceRecords();
   if (tab === 'dashboard') loadDashboardStats();
 
   // Close mobile sidebar

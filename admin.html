@@ -318,7 +318,6 @@
       <button class="adm-sb-item" onclick="switchAdminTab('visitors')" id="tabVisitors"><span class="adm-sb-icon">👥</span><span class="adm-sb-label">Visitors</span></button>
       <button class="adm-sb-item" onclick="switchAdminTab('analytics')" id="tabAnalytics"><span class="adm-sb-icon">📈</span><span class="adm-sb-label">Analytics</span></button>
       <button class="adm-sb-item" onclick="switchAdminTab('community')" id="tabCommunity"><span class="adm-sb-icon">🧑‍🤝‍🧑</span><span class="adm-sb-label">Community</span></button>
-      <button class="adm-sb-item" onclick="switchAdminTab('attendance')" id="tabAttendance"><span class="adm-sb-icon">📅</span><span class="adm-sb-label">Attendance</span></button>
     </div>
     <button class="adm-sb-logout" onclick="adminLogout()"><span class="adm-sb-icon">🚪</span><span class="adm-sb-label">Logout</span></button>
     <div class="adm-sb-profile">
@@ -419,7 +418,7 @@
           <button class="adm-quick-btn" onclick="switchAdminTab('notifications')"><span class="adm-quick-icon">📢</span>Post Alert</button>
           <button class="adm-quick-btn" onclick="switchAdminTab('inbox')"><span class="adm-quick-icon">📥</span>Check Inbox</button>
           <button class="adm-quick-btn" onclick="switchAdminTab('community')"><span class="adm-quick-icon">🧑‍🤝‍🧑</span><span class="adm-quick-icon">🧑‍🤝‍🧑</span>Manage Community</button>
-          <button class="adm-quick-btn" onclick="switchAdminTab('attendance')"><span class="adm-quick-icon">📅</span>Take Attendance</button>
+          
         </div>
 
         <div class="adm-dashboard-main-grid" style="display:grid; grid-template-columns: 2fr 1fr; gap:20px;">
@@ -713,104 +712,7 @@
     </div>
   </div>
 
-  <!-- ====== ATTENDANCE MANAGEMENT TAB ====== -->
-  <div class="adm-section" id="admin-tab-attendance">
-    <div class="attendance-header" style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px;">
-      <div>
-        <h2 style="font-size: 1.8rem; font-weight: 800; color: #f8fafc; margin-bottom: 8px;">Attendance Management System</h2>
-        <p style="color: #94a3b8;">Control and monitor student attendance sessions in real-time.</p>
-      </div>
-      <a href="attendance-link-admin.html" class="btn-primary" style="padding: 12px 24px; display: flex; align-items: center; gap: 8px; text-decoration: none; background: linear-gradient(135deg, #0ea5e9 0%,#0284c7 100%); color: white; border-radius: 10px; font-weight: 600; white-space: nowrap;">
-        🔗 Link Generator
-      </a>
-    </div>
-
-    <div class="attendance-grid" style="display: grid; grid-template-columns: 1fr; gap: 24px;">
-      <div class="records-container" style="display: flex; flex-direction: column; gap: 24px;">
-        <!-- Active Session Card (Hidden by default) -->
-        <div id="activeSessionCard" class="glass-card" style="display: none; border: 1px solid rgba(14, 165, 233, 0.3); background: rgba(14, 165, 233, 0.05);">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
-            <div>
-              <h3 style="color: #38bdf8;">⚡ Active Session</h3>
-              <p id="activeSessionDetails" style="font-size: 0.9rem; color: #94a3b8;"></p>
-            </div>
-            <div id="sessionCountdown" style="background: #ef4444; color: white; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 0.9rem;">05:00</div>
-          </div>
-          
-          <div class="link-share-box" style="display: flex; gap: 12px; margin-bottom: 20px;">
-            <input type="text" id="attendanceLinkInput" readonly style="flex: 1; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); padding: 10px 16px; border-radius: 10px; color: #cbd5e1; font-size: 0.9rem;" />
-            <button class="btn-outline" onclick="copyAttendanceLink()" style="padding: 10px 20px;">📋 Copy</button>
-            <button class="btn-primary" onclick="shareOnWhatsApp()" style="background: #25d366; border-color: #25d366; color: white; padding: 10px 20px;">📱 WhatsApp</button>
-          </div>
-
-          <div style="display: flex; align-items: center;">
-            <div style="flex: 1;">
-              <p style="font-size: 0.85rem; color: #94a3b8; line-height: 1.5;">Students can use the link to mark their attendance. Duplicate entries are automatically blocked.</p>
-              <button class="btn-outline" onclick="stopAttendanceSession()" style="margin-top: 12px; color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">🛑 Stop Session Now</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Attendance Records Table -->
-        <div class="glass-card" style="padding: 24px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
-            <h3>📊 Attendance Records</h3>
-            <div style="display: flex; gap: 8px;">
-              <button class="btn-outline" onclick="exportAttendance('csv')">📄 CSV</button>
-              <button class="btn-outline" onclick="exportAttendance('excel')">📗 Excel</button>
-              <button class="btn-outline" onclick="exportAttendance('pdf')">📕 PDF</button>
-            </div>
-          </div>
-
-          <!-- Filters -->
-          <div class="admin-filter-bar" style="background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 20px; padding: 12px; border-radius: 12px;">
-             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; width: 100%;">
-                <input type="date" id="filterAttDate" onchange="loadAttendanceRecords()" style="background: #0f172a; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px; border-radius: 8px;" />
-                <select id="filterAttSem" onchange="loadAttendanceRecords()" style="background: #0f172a; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px; border-radius: 8px;">
-                  <option value="">All Semesters</option>
-                  <option value="Semester1">Semester 1</option>
-                  <option value="Semester2">Semester 2</option>
-                  <option value="Semester3">Semester 3</option>
-                  <option value="Semester4">Semester 4</option>
-                  <option value="Semester5">Semester 5</option>
-                  <option value="Semester6">Semester 6</option>
-                </select>
-                <input type="text" id="filterAttRoll" placeholder="Roll Number..." oninput="loadAttendanceRecords()" style="background: #0f172a; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px; border-radius: 8px;" />
-             </div>
-          </div>
-
-          <div style="overflow-x: auto;">
-            <table class="adm-table" style="width: 100%; min-width: 600px;">
-              <thead>
-                <tr>
-                  <th>Student Name</th>
-                  <th>Roll No</th>
-                  <th>Semester</th>
-                  <th>Subject</th>
-                  <th>Teacher</th>
-                  <th>Date</th>
-                  <th>Time</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="attendanceRecordsTable">
-                <!-- Data injected by JS -->
-              </tbody>
-            </table>
-          </div>
-          
-          <div id="attendanceEmpty" style="display: none; text-align: center; padding: 40px;">
-            <div style="font-size: 3rem; margin-bottom: 16px;">📂</div>
-            <h4 style="color: #94a3b8;">No records found</h4>
-            <p style="font-size: 0.9rem; color: #64748b;">Try adjusting your filters or start a new session.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    </div><!-- /adm-content -->
-  </div><!-- /adm-main -->
-</div><!-- /admin-panel -->
+  
 
 <div class="admin-extras" id="adminExtras">
  
@@ -944,7 +846,6 @@
 <script src="script.js"></script>
 <link rel="stylesheet" href="community.css" />
 <script src="community.js"></script>
-<script src="attendance.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     initAdminPage();
