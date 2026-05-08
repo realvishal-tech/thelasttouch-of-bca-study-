@@ -725,50 +725,7 @@
       </a>
     </div>
 
-    <div class="attendance-grid" style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px;">
-      <!-- LEFT: Start Session Form -->
-      <div class="admin-form-card glass-card" style="position: sticky; top: 20px;">
-        <h3 style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
-          <span style="background: rgba(14, 165, 233, 0.1); padding: 8px; border-radius: 10px;">🚀</span>
-          Start New Session
-        </h3>
-        
-        <div class="form-group">
-          <label>Teacher Name <span class="required">*</span></label>
-          <input type="text" id="attTeacherName" placeholder="e.g. Dr. R.K. Singh" />
-        </div>
-        
-        <div class="form-group">
-          <label>Semester <span class="required">*</span></label>
-          <select id="attSemester" onchange="updateAttendanceSubjectDropdown()">
-            <option value="">— Select Semester —</option>
-            <option value="Semester1">Semester 1</option>
-            <option value="Semester2">Semester 2</option>
-            <option value="Semester3">Semester 3</option>
-            <option value="Semester4">Semester 4</option>
-            <option value="Semester5">Semester 5</option>
-            <option value="Semester6">Semester 6</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label>Subject <span class="required">*</span></label>
-          <select id="attSubject">
-            <option value="">— Select Subject —</option>
-          </select>
-        </div>
-
-        <div class="session-timer-info" style="margin-top: 12px; padding: 12px; background: rgba(251, 191, 36, 0.1); border: 1px dashed rgba(251, 191, 36, 0.3); border-radius: 12px; font-size: 0.85rem; color: #fbbf24;">
-          ⚠️ Session will automatically expire in <strong>5 minutes</strong> after generation.
-        </div>
-
-        <button class="btn-primary" onclick="startAttendanceSession()" style="margin-top: 20px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
-          <span>Generate Link</span>
-          <span id="attBtnLoader" class="loader-login" style="width: 16px; height: 16px;"></span>
-        </button>
-      </div>
-
-      <!-- RIGHT: Active Session & Records -->
+    <div class="attendance-grid" style="display: grid; grid-template-columns: 1fr; gap: 24px;">
       <div class="records-container" style="display: flex; flex-direction: column; gap: 24px;">
         <!-- Active Session Card (Hidden by default) -->
         <div id="activeSessionCard" class="glass-card" style="display: none; border: 1px solid rgba(14, 165, 233, 0.3); background: rgba(14, 165, 233, 0.05);">
@@ -786,10 +743,9 @@
             <button class="btn-primary" onclick="shareOnWhatsApp()" style="background: #25d366; border-color: #25d366; color: white; padding: 10px 20px;">📱 WhatsApp</button>
           </div>
 
-          <div style="display: flex; gap: 24px; align-items: center;">
-            <div id="qrcode" style="padding: 12px; background: white; border-radius: 12px; width: fit-content;"></div>
+          <div style="display: flex; align-items: center;">
             <div style="flex: 1;">
-              <p style="font-size: 0.85rem; color: #94a3b8; line-height: 1.5;">Students can scan this QR or use the link to mark their attendance. Duplicate entries are automatically blocked.</p>
+              <p style="font-size: 0.85rem; color: #94a3b8; line-height: 1.5;">Students can use the link to mark their attendance. Duplicate entries are automatically blocked.</p>
               <button class="btn-outline" onclick="stopAttendanceSession()" style="margin-top: 12px; color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">🛑 Stop Session Now</button>
             </div>
           </div>
@@ -970,7 +926,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>

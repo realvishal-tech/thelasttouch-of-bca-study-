@@ -456,58 +456,14 @@
 
     <script src="attendance-link-system.js"></script>
     <script>
-        let countdownTimer = null;
-        let verifyTimer = null;
-
-        // Get link token from URL
+        // Get link token from URL and immediately hand off to the form page.
         const urlParams = new URLSearchParams(window.location.search);
-        const linkToken = urlParams.get('link');
+        const linkToken = urlParams.get('link') || urlParams.get('token');
 
-        // Prevent direct access without token
         if (!linkToken || linkToken.length < 8) {
             showState('invalidState');
         } else {
-            validateAndProcess();
-        }
-
-        async function validateAndProcess() {
-            try {
-                // Simulate 2 second verification delay for UX
-                let verifyCount = 2;
-                verifyTimer = setInterval(() => {
-                    document.getElementById('verifyTimer').textContent = `Verifying... ${3 - verifyCount}s`;
-                    verifyCount--;
-                    if (verifyCount < 0) clearInterval(verifyTimer);
-                }, 1000);
-
-                // Wait a bit then validate
-                await new Promise(resolve => setTimeout(resolve, 2000));
-
-                // Validate link
-                const validation = await attendanceLinkSystem.validateLink(linkToken);
-
-                if (!validation.valid) {
-                    if (validation.expired) {
-                        showState('expiredState');
-                    } else if (validation.duplicate) {
-                        showState('duplicateState');
-                    } else if (validation.reason === 'Link is no longer active') {
-                        showState('disabledState');
-                    } else {
-                        showState('invalidState');
-                    }
-                    return;
-                }
-
-                // Link is valid, show success and redirect
-                showState('validState');
-                startRedirectCountdown();
-            } catch (error) {
-                console.error('Validation Error:', error);
-                showState('invalidState');
-            } finally {
-                if (verifyTimer) clearInterval(verifyTimer);
-            }
+            window.location.replace(`attendance-link-form.html?token=${encodeURIComponent(linkToken)}`);
         }
 
         function showState(stateId) {
@@ -521,47 +477,11 @@
             document.getElementById(stateId).style.display = 'block';
         }
 
-        function startRedirectCountdown() {
-            let count = 3;
-            countdownTimer = setInterval(() => {
-                document.getElementById('redirectTimer').textContent = `Redirecting in ${count}...`;
-                count--;
-                if (count < 0) {
-                    clearInterval(countdownTimer);
-                    redirectToAttendanceForm();
-                }
-            }, 1000);
-        }
-
-        function redirectToAttendanceForm() {
-            // Navigate to hidden attendance form with token
-            window.location.href = `attendance-link-form.html?token=${linkToken}`;
-        }
-
         function goBack() {
             window.history.back();
         }
 
-        // Security: Prevent browser back/forward
-        window.addEventListener('popstate', function() {
-            window.location.href = 'index.html';
-        });
-
-        // Security: Clear storage on page unload if not completed
-        window.addEventListener('beforeunload', function(e) {
-            sessionStorage.setItem('attendance_verified', linkToken);
-        });
-
-        // Show security info
-        document.addEventListener('DOMContentLoaded', function() {
-            // Log security checks
-            console.log('✅ SECURITY CHECKS:');
-            console.log('✅ HTTPS/Secure connection required');
-            console.log('✅ Device fingerprinting enabled');
-            console.log('✅ Token validation enabled');
-            console.log('✅ Expiry validation enabled');
-            console.log('✅ Backend: Firebase Realtime Database');
-        });
+        // Legacy compatibility shell: direct links now open the form page immediately.
     </script>
 </body>
 </html>

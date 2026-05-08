@@ -745,17 +745,19 @@
                     createdBy: 'admin'
                 };
 
-                const token = await attendanceLinkSystem.createAttendanceLink(config);
+                const creation = await attendanceLinkSystem.createAttendanceLink(config);
+                const token = creation.token || creation;
                 currentGeneratedLink = token;
 
-                // Display link
-                const fullUrl = `${window.location.origin}/attendance-link-redirect.html?link=${token}`;
+                // Display link immediately using returned data (avoids extra DB read)
+                const fullUrl = new URL('attendance-link-form.html', window.location.href);
+                fullUrl.searchParams.set('token', token);
                 document.getElementById('linkValue').textContent = token;
-                document.getElementById('fullUrl').textContent = fullUrl;
+                document.getElementById('fullUrl').textContent = fullUrl.href;
                 document.getElementById('linkDisplay').style.display = 'block';
 
-                // Start expiry timer
-                startExpiryTimer();
+                // Start realtime listener for expiry/timer updates
+                startExpiryTimer(creation.data);
 
                 showToast('✅ Link generated successfully!', 'success');
                 refreshActiveLinks();
@@ -766,29 +768,49 @@
         }
 
         function startExpiryTimer() {
-            if (currentTimer) clearInterval(currentTimer);
+            // If a previous realtime listener exists, cancel it
+            if (currentTimer && typeof currentTimer === 'string') {
+                attendanceLinkSystem.cancelLinkListener(currentTimer);
+                currentTimer = null;
+            }
 
-            currentTimer = setInterval(() => {
-                const linkData = attendanceLinkSystem.linksRef.child(currentGeneratedLink);
-                linkData.once('value').then(snapshot => {
-                    const data = snapshot.val();
-                    if (data) {
-                        const remaining = attendanceLinkSystem.getTimeRemaining(data.expiresAt);
-                        const timerEl = document.getElementById('expireTimer');
+            // Use a realtime listener for the link to get instant updates
+            const token = currentGeneratedLink;
+            if (!token) return;
 
-                        if (remaining.expired) {
-                            timerEl.textContent = 'EXPIRED';
-                            timerEl.classList.add('expired');
-                            clearInterval(currentTimer);
-                        } else if (remaining.minutes === 0) {
-                            timerEl.textContent = `${remaining.seconds}s`;
-                            timerEl.classList.add('expiring');
-                        } else {
-                            timerEl.textContent = remaining.message;
-                        }
-                    }
-                });
-            }, 1000);
+            // If initial link data is provided, update immediately
+            if (initialLinkData) {
+                updateTimerDisplay(initialLinkData.expiresAt);
+            }
+
+            attendanceLinkSystem.onLinkStatusChange(token, (data) => {
+                if (!data) return;
+                updateTimerDisplay(data.expiresAt);
+
+                if (data.status === 'disabled' || data.status === 'used') {
+                    attendanceLinkSystem.cancelLinkListener(token);
+                }
+            });
+            // store token as currentTimer marker so we can cancel when needed
+            currentTimer = token;
+            }
+
+            function updateTimerDisplay(expiryAt) {
+                const remaining = attendanceLinkSystem.getTimeRemaining(expiryAt);
+                const timerEl = document.getElementById('expireTimer');
+
+                if (remaining.expired) {
+                    timerEl.textContent = 'EXPIRED';
+                    timerEl.classList.add('expired');
+                } else if (remaining.minutes === 0) {
+                    timerEl.textContent = `${remaining.seconds}s`;
+                    timerEl.classList.add('expiring');
+                } else {
+                    timerEl.textContent = remaining.message;
+                    timerEl.classList.remove('expiring');
+                    timerEl.classList.remove('expired');
+                }
+            }
         }
 
         async function refreshActiveLinks() {

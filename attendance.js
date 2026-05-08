@@ -152,16 +152,17 @@ function showActiveSessionUI(session) {
     
     linkInput.value = fullUrl;
 
-    // Generate QR Code
-    qrContainer.innerHTML = "";
-    new QRCode(qrContainer, {
-        text: fullUrl,
-        width: 128,
-        height: 128,
-        colorDark: "#0f172a",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.H
-    });
+    if (qrContainer && typeof QRCode !== 'undefined') {
+        qrContainer.innerHTML = "";
+        new QRCode(qrContainer, {
+            text: fullUrl,
+            width: 128,
+            height: 128,
+            colorDark: "#0f172a",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+    }
 
     // Start Timer
     startSessionTimer(session.expiresAt);

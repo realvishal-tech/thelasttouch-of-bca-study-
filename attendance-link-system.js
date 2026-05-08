@@ -11,7 +11,53 @@ class AttendanceLinkSystem {
         this.attendanceRef = null;
         this.EXPIRY_MINUTES = 5;
         this.LINK_LENGTH = 10;
+        this.serverTimeOffset = 0;
+        this._cache = {};
         this.initializeDatabase();
+    }
+
+    /**
+     * Load Firebase SDK scripts dynamically when not present to avoid blocking page load
+     */
+    async loadFirebaseScripts() {
+        if (typeof window === 'undefined') return;
+
+        if (typeof firebase !== 'undefined') return;
+
+        // Avoid duplicate injection
+        if (this._loadingFirebase) {
+            return this._loadingFirebase;
+        }
+
+        this._loadingFirebase = new Promise((resolve, reject) => {
+            try {
+                const urls = [
+                    'https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js',
+                    'https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js'
+                ];
+
+                let loaded = 0;
+
+                urls.forEach(src => {
+                    const s = document.createElement('script');
+                    s.src = src;
+                    s.async = true;
+                    s.onload = () => {
+                        loaded += 1;
+                        if (loaded === urls.length) {
+                            // small delay to allow firebase to initialize
+                            setTimeout(() => resolve(), 50);
+                        }
+                    };
+                    s.onerror = (e) => reject(new Error('Failed loading ' + src));
+                    document.head.appendChild(s);
+                });
+            } catch (err) {
+                reject(err);
+            }
+        });
+
+        return this._loadingFirebase;
     }
 
     /**
@@ -19,16 +65,55 @@ class AttendanceLinkSystem {
      */
     initializeDatabase() {
         try {
-            if (typeof firebase !== 'undefined') {
-                this.db = firebase.database();
-                this.linksRef = this.db.ref('attendance_links');
-                this.attendanceRef = this.db.ref('attendance_records');
-                console.log('✅ Attendance Link System Initialized');
-            } else {
-                console.error('❌ Firebase SDK not initialized');
-            }
+            // If firebase is not yet present, load scripts lazily
+            const init = async () => {
+                if (typeof firebase === 'undefined') {
+                    await this.loadFirebaseScripts();
+                }
+
+                if (typeof firebase !== 'undefined') {
+                    // Ensure app is initialized (support pages that only provide config object)
+                    try {
+                        const hasApp = firebase.apps && firebase.apps.length > 0;
+                        const config = (typeof window !== 'undefined' && window.FIREBASE_CONFIG) ? window.FIREBASE_CONFIG : (typeof firebaseConfig !== 'undefined' ? firebaseConfig : null);
+                        if (!hasApp && config) {
+                            firebase.initializeApp(config);
+                        }
+                    } catch (e) {
+                        // ignore
+                    }
+
+                    this.db = firebase.database();
+                    this.linksRef = this.db.ref('attendance_links');
+                    this.attendanceRef = this.db.ref('attendance_records');
+                    this.syncServerTime();
+                    console.log('✅ Attendance Link System Initialized');
+                } else {
+                    console.error('❌ Firebase SDK not initialized');
+                }
+            };
+
+            init();
         } catch (error) {
             console.error('❌ Database Init Error:', error);
+        }
+    }
+
+    /**
+     * Keep client expiry checks aligned with Firebase server time
+     */
+    syncServerTime() {
+        try {
+            if (!this.db) {
+                return;
+            }
+
+            this.db.ref('.info/serverTimeOffset').on('value', (snapshot) => {
+                const offset = snapshot.val();
+                this.serverTimeOffset = typeof offset === 'number' ? offset : 0;
+            });
+        } catch (error) {
+            console.warn('⚠️ Server time sync unavailable, falling back to client time');
         }
     }
 
@@ -65,6 +150,13 @@ class AttendanceLinkSystem {
     }
 
     /**
+     * Get current timestamp using Firebase server offset when available
+     */
+    getCurrentTimestamp() {
+        return Date.now() + this.serverTimeOffset;
+    }
+
+    /**
      * Create Attendance Link
      * @param {Object} config - {semester, subject, teacher, duration}
      * @returns {Promise<string>} - Generated link token
@@ -72,13 +164,13 @@ class AttendanceLinkSystem {
     async createAttendanceLink(config) {
         try {
             const token = this.generateUniqueToken();
-            const now = new Date();
-            const expiryTime = new Date(now.getTime() + this.EXPIRY_MINUTES * 60000);
+            const now = this.getCurrentTimestamp();
+            const expiryTime = now + this.EXPIRY_MINUTES * 60000;
 
             const linkData = {
                 token: token,
-                createdAt: now.getTime(),
-                expiresAt: expiryTime.getTime(),
+                createdAt: now,
+                expiresAt: expiryTime,
                 semester: config.semester || '',
                 subject: config.subject || '',
                 teacher: config.teacher || '',
@@ -100,7 +192,10 @@ class AttendanceLinkSystem {
             }, this.EXPIRY_MINUTES * 60000 + 1000);
 
             console.log(`✅ Link Created: ${token}`);
-            return token;
+            // Return token and link snapshot to avoid an extra read by the caller
+            // Also cache briefly for immediate reads
+            this.cacheSet('link:' + token, linkData, 5000);
+            return { token, data: linkData };
         } catch (error) {
             console.error('❌ Link Creation Error:', error);
             throw error;
@@ -125,7 +220,7 @@ class AttendanceLinkSystem {
                 return { valid: false, reason: 'Link not found' };
             }
 
-            const now = new Date().getTime();
+            const now = this.getCurrentTimestamp();
 
             // Check if expired
             if (now > linkData.expiresAt) {
@@ -161,16 +256,31 @@ class AttendanceLinkSystem {
      * @param {Object} attendanceData - Student attendance info
      * @returns {Promise<Object>} - {success: boolean, message: string}
      */
-    async submitAttendance(token, attendanceData) {
+    async submitAttendance(token, attendanceData, options = {}) {
         try {
-            // Validate link first
-            const validation = await this.validateLink(token);
-            if (!validation.valid) {
-                return { success: false, message: validation.reason };
+            const now = this.getCurrentTimestamp();
+
+            // Reuse a fresh snapshot from the form page when available.
+            if (options.cachedLinkData) {
+                const cachedLink = options.cachedLinkData;
+
+                if (cachedLink.status === 'used' || cachedLink.status === 'disabled') {
+                    return { success: false, message: 'Link is no longer active' };
+                }
+
+                if (now > cachedLink.expiresAt) {
+                    await this.deactivateLink(token);
+                    return { success: false, message: 'Link expired' };
+                }
+            } else {
+                // Validate link first when no cached snapshot is provided
+                const validation = await this.validateLink(token);
+                if (!validation.valid) {
+                    return { success: false, message: validation.reason };
+                }
             }
 
             const deviceId = this.getDeviceId();
-            
             // Check duplicate submission for same roll number
             const rollCheckSnapshot = await this.attendanceRef
                 .orderByChild('rollNumber')
@@ -182,7 +292,7 @@ class AttendanceLinkSystem {
             if (existingRecords) {
                 const lastRecord = Object.values(existingRecords)[0];
                 const lastSubmitTime = lastRecord.submittedAt || 0;
-                const timeDiff = new Date().getTime() - lastSubmitTime;
+                const timeDiff = now - lastSubmitTime;
 
                 // If submitted in last 5 mins, reject
                 if (timeDiff < 5 * 60000) {
@@ -192,7 +302,6 @@ class AttendanceLinkSystem {
 
             // Create attendance record
             const recordId = this.db.ref('attendance_records').push().key;
-            const now = new Date();
             
             const record = {
                 recordId: recordId,
@@ -205,7 +314,7 @@ class AttendanceLinkSystem {
                 date: attendanceData.date || this.formatDate(now),
                 time: attendanceData.time || this.formatTime(now),
                 deviceId: deviceId,
-                submittedAt: now.getTime(),
+                submittedAt: now,
                 ipAddress: attendanceData.ipAddress || 'N/A',
                 userAgent: navigator.userAgent,
                 status: 'present'
@@ -213,18 +322,19 @@ class AttendanceLinkSystem {
 
             // Save attendance record
             await this.attendanceRef.child(recordId).set(record);
+            // Update link atomically using a transaction to avoid race conditions
+            await this.linksRef.child(token).transaction((current) => {
+                if (!current) return current;
 
-            // Update link - add device to usedBy
-            const linkSnapshot = await this.linksRef.child(token).once('value');
-            const linkData = linkSnapshot.val();
-            const updatedUsedBy = linkData.usedBy || [];
-            updatedUsedBy.push(deviceId);
+                const usedBy = Array.isArray(current.usedBy) ? current.usedBy : [];
+                if (!usedBy.includes(deviceId)) usedBy.push(deviceId);
 
-            await this.linksRef.child(token).update({
-                usedBy: updatedUsedBy,
-                currentSubmissions: (linkData.currentSubmissions || 0) + 1,
-                lastSubmittedBy: attendanceData.rollNumber,
-                lastSubmittedAt: now.getTime()
+                current.usedBy = usedBy;
+                current.currentSubmissions = (current.currentSubmissions || 0) + 1;
+                current.lastSubmittedBy = attendanceData.rollNumber;
+                current.lastSubmittedAt = now;
+
+                return current;
             });
 
             // Schedule link deactivation
@@ -250,7 +360,8 @@ class AttendanceLinkSystem {
     async deactivateLink(token) {
         try {
             await this.linksRef.child(token).update({
-                status: 'disabled'
+                status: 'disabled',
+                disabledAt: this.getCurrentTimestamp()
             });
             console.log(`✅ Link Deactivated: ${token}`);
         } catch (error) {
@@ -263,8 +374,14 @@ class AttendanceLinkSystem {
      */
     async getLinkDetails(token) {
         try {
+            const cacheKey = 'link:' + token;
+            const cached = this.cacheGet(cacheKey);
+            if (cached) return cached;
+
             const snapshot = await this.linksRef.child(token).once('value');
-            return snapshot.val() || null;
+            const data = snapshot.val() || null;
+            if (data) this.cacheSet(cacheKey, data, 3000);
+            return data;
         } catch (error) {
             console.error('❌ Error fetching link details:', error);
             return null;
@@ -276,9 +393,13 @@ class AttendanceLinkSystem {
      */
     async getActiveLinks() {
         try {
+            const cacheKey = 'activeLinks';
+            const cached = this.cacheGet(cacheKey);
+            if (cached) return cached;
+
             const snapshot = await this.linksRef.once('value');
             const allLinks = snapshot.val() || {};
-            const now = new Date().getTime();
+            const now = this.getCurrentTimestamp();
 
             const activeLinks = Object.entries(allLinks)
                 .filter(([_, link]) => {
@@ -290,6 +411,7 @@ class AttendanceLinkSystem {
                     timeRemaining: link.expiresAt - now
                 }));
 
+            this.cacheSet(cacheKey, activeLinks, 2000);
             return activeLinks;
         } catch (error) {
             console.error('❌ Error fetching active links:', error);
@@ -382,7 +504,7 @@ class AttendanceLinkSystem {
             const links = linksSnapshot.val() || {};
             const recordsSnapshot = await this.attendanceRef.once('value');
             const records = Object.values(recordsSnapshot.val() || {});
-            const now = new Date().getTime();
+            const now = this.getCurrentTimestamp();
 
             const analytics = {
                 totalLinksCreated: Object.keys(links).length,
@@ -478,7 +600,7 @@ class AttendanceLinkSystem {
             try {
                 const snapshot = await this.linksRef.once('value');
                 const links = snapshot.val() || {};
-                const now = new Date().getTime();
+                const now = this.getCurrentTimestamp();
                 const updates = {};
 
                 for (const [token, link] of Object.entries(links)) {
@@ -494,14 +616,29 @@ class AttendanceLinkSystem {
             } catch (error) {
                 console.error('❌ Cleanup Error:', error);
             }
-        }, 60000); // Run every minute
+        }, 300000); // Run every 5 minutes to reduce DB load
+    }
+
+    /* Simple in-memory cache helpers */
+    cacheGet(key) {
+        const entry = this._cache[key];
+        if (!entry) return null;
+        if (Date.now() > entry.expiresAt) {
+            delete this._cache[key];
+            return null;
+        }
+        return entry.value;
+    }
+
+    cacheSet(key, value, ttl = 2000) {
+        this._cache[key] = { value, expiresAt: Date.now() + ttl };
     }
 
     /**
      * Check Link Status (Client-side)
      */
     getTimeRemaining(expiryTime) {
-        const now = new Date().getTime();
+        const now = this.getCurrentTimestamp();
         const remaining = expiryTime - now;
 
         if (remaining <= 0) return { expired: true, message: 'Expired' };

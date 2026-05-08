@@ -526,22 +526,28 @@
 
         async function initializeForm() {
             try {
-                // Load link data
-                const linkDetails = await attendanceLinkSystem.getLinkDetails(currentToken);
+                // Validate once and reuse the returned snapshot for submit
+                const validation = await attendanceLinkSystem.validateLink(currentToken);
                 
-                if (!linkDetails) {
-                    showToast('❌ Session not found', 'error');
+                if (!validation.valid) {
+                    showToast(`❌ ${validation.reason || 'Session not found'}`, 'error');
                     setTimeout(() => window.location.href = 'index.html', 2000);
                     return;
                 }
 
-                linkData = linkDetails;
+                linkData = validation.data;
 
                 // Display link info
                 document.getElementById('displaySubject').textContent = linkData.subject;
                 document.getElementById('displaySemester').textContent = linkData.semester;
                 document.getElementById('displayTeacher').textContent = linkData.teacher;
                 document.getElementById('displayDate').textContent = attendanceLinkSystem.formatDate(new Date());
+
+                attendanceLinkSystem.onLinkStatusChange(currentToken, (updatedLink) => {
+                    if (updatedLink) {
+                        linkData = updatedLink;
+                    }
+                });
 
                 // Start timer
                 startLinkTimer();
@@ -602,7 +608,9 @@
                     time: attendanceLinkSystem.formatTime(new Date())
                 };
 
-                const result = await attendanceLinkSystem.submitAttendance(currentToken, attendanceData);
+                const result = await attendanceLinkSystem.submitAttendance(currentToken, attendanceData, {
+                    cachedLinkData: linkData
+                });
 
                 if (result.success) {
                     // Show success
