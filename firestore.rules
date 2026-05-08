@@ -1,12 +1,39 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Attendance Links - Students can only read, system can create/update
     match /attendanceLinks/{token} {
-      allow read, write: if true;
+      // Allow anyone to read individual links (students need to verify links)
+      allow read: if resource.data.active == true && resource.data.expiresAtMs > request.time.toMillis();
+      
+      // Allow service to write (you'll need to use service account for admin operations)
+      // In practice, use Cloud Functions or Admin SDK for link creation
+      allow write: if request.auth != null && request.auth.token.admin == true;
     }
 
+    // Attendance Records - Only submissions allowed, read restricted to admin
     match /attendanceRecords/{recordId} {
-      allow read, write: if true;
+      // Students can only read and write their own records (if implemented with auth)
+      // Currently using token-based system, so we validate during submission
+      allow read: if request.auth != null && request.auth.token.admin == true;
+      
+      // Allow submission verification through custom validation
+      allow write: if request.resource.data.keys().hasAll([
+        'tokenId',
+        'studentName', 
+        'rollNumber',
+        'semester',
+        'subject',
+        'teacherName',
+        'submittedAtMs',
+        'submittedDate',
+        'submittedTime'
+      ]) && request.resource.data.submittedAtMs > request.time.toMillis() - 5000;
+    }
+
+    // Security: Deny everything else by default
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
