@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="BCA STORE - All-in-one study platform for BCA students of Babasaheb Bhim Rao Ambedkar Bihar University. Access Notes, PYQs, Video Lectures, and Lab programs." />
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://bca-store.netlify.app/" />
+  <meta property="og:title" content="BCA STORE | BRABU Study Hub" />
+  <meta property="og:description" content="The ultimate resource for BCA students. Notes, PYQs, and Video Lectures in one place." />
+  <meta property="og:image" content="https://bca-store.netlify.app/og-image.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="https://bca-store.netlify.app/" />
+  <meta property="twitter:title" content="BCA STORE | BRABU Study Hub" />
+  <meta property="twitter:description" content="The ultimate resource for BCA students. Notes, PYQs, and Video Lectures in one place." />
+  <meta property="twitter:image" content="https://bca-store.netlify.app/og-image.png" />
+
+  <title>BCA STORE | BRABU — Study Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ==================== NAME ENTRY GATE ==================== -->
+<div class="welcome-gate" id="welcomeGate">
+  <!-- Matrix Code Rain Canvas -->
+  <canvas id="wgCodeRain" class="wg-code-rain"></canvas>
+  <!-- Circuit Grid Overlay -->
+  <div class="wg-circuit-grid"></div>
+  <!-- Floating Code Snippets -->
+  <div class="wg-floating-code" id="wgFloatingCode"></div>
+  
+  <div class="wg-bg-orb wg-orb1"></div>
+  <div class="wg-bg-orb wg-orb2"></div>
+  <div class="wg-bg-orb wg-orb3"></div>
+  <div class="wg-card" id="wgCard">
+    <div class="wg-code-badge">&lt;/&gt; BCA DEVELOPER ZONE</div>
+    <div class="wg-icon">📚</div>
+    <h1 class="wg-title">Welcome to <span class="wg-accent"><span class="brand-bca">BCA</span> <span class="brand-accent">STORE</span></span></h1>
+    <p class="wg-subtitle">Babasaheb Bhim Rao Ambedkar Bihar University</p>
+    <div class="wg-divider"></div>
+    <p class="wg-prompt">Before we begin, tell us your name 😊</p>
+    <div class="wg-input-wrap">
+      <span class="wg-input-icon">👤</span>
+      <input type="text" id="wgNameInput" class="wg-input" placeholder="Enter your full name..." maxlength="40" autocomplete="off" />
+    </div>
+    <button class="wg-btn" id="wgContinueBtn" onclick="submitWelcomeName()">Let's Go! 🚀</button>
+    <p class="wg-note">Your name is saved locally — never shared with anyone.</p>
+    <div class="wg-terminal-line">
+      <span class="wg-term-prompt">$</span>
+      <span class="wg-term-text" id="wgTermText"></span>
+      <span class="wg-term-cursor">▊</span>
+    </div>
+    <div class="wg-dev-credit">Developed with ❤️ <strong>Vishal (LND COLLEGE)</strong></div>
+  </div>
+</div>
+
+<!-- ==================== WELCOME POPUP ==================== -->
+<div class="welcome-popup-overlay" id="welcomePopupOverlay">
+  <div class="welcome-popup" id="welcomePopup">
+    <div class="wp-confetti" id="wpConfetti"></div>
+
+    <!-- Header Zone -->
+    <div class="wp-header-zone">
+      <div class="wp-avatar" id="wpAvatar">👋</div>
+      <div class="wp-greeting" id="wpGreeting">Good Morning!</div>
+      <h2 class="wp-name" id="wpName">Hey Vishal, you're back! 👋</h2>
+      <p class="wp-msg" id="wpMsg">Good to see you again! Ready to excel? 🚀</p>
+      <div class="wp-tagline">Everything you need to ace BRABU BCA — in one place.</div>
+    </div>
+
+    <!-- Feature Section Label -->
+    <div class="wp-section-label">✨ What's inside for you</div>
+
+    <!-- Features Grid -->
+    <div class="wp-features">
+      <div class="wp-feature-item">
+        <span class="wp-fi-icon">📝</span>
+        <div class="wp-fi-text">
+          <div class="wp-fi-title">Premium Study Notes</div>
+          <div class="wp-fi-desc">Concise, exam-ready notes for all 6 semesters</div>
+        </div>
+      </div>
+      <div class="wp-feature-item">
+        <span class="wp-fi-icon">📄</span>
+        <div class="wp-fi-text">
+          <div class="wp-fi-title">Solved PYQ Collection</div>
+          <div class="wp-fi-desc">Previous year papers with detailed solutions</div>
+        </div>
+      </div>
+      <div class="wp-feature-item">
+        <span class="wp-fi-icon">🎥</span>
+        <div class="wp-fi-text">
+          <div class="wp-fi-title">Video Lectures</div>
+          <div class="wp-fi-desc">High-quality topic-wise video explanations</div>
+        </div>
+      </div>
+      <div class="wp-feature-item">
+        <span class="wp-fi-icon">💻</span>
+        <div class="wp-fi-text">
+          <div class="wp-fi-title">Lab Manuals & Code</div>
+          <div class="wp-fi-desc">Ready-to-run programs for all lab subjects</div>
+        </div>
+      </div>
+      <div class="wp-feature-item">
+        <span class="wp-fi-icon">📊</span>
+        <div class="wp-fi-text">
+          <div class="wp-fi-title">Progress Tracking</div>
+          <div class="wp-fi-desc">Track your completion across subjects in real-time</div>
+        </div>
+      </div>
+      <div class="wp-feature-item">
+        <span class="wp-fi-icon">🌙</span>
+        <div class="wp-fi-text">
+          <div class="wp-fi-title">Dark Mode Support</div>
+          <div class="wp-fi-desc">Eye-friendly aesthetic UI for late-night study</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="wp-btn" onclick="closeWelcomePopup()">Start Studying 📖</button>
+    <button class="wp-skip" onclick="closeWelcomePopup()">✕</button>
+  </div>
+</div>
+
+<!-- ==================== NAVBAR ==================== -->
+<nav class="navbar" id="navbar">
+  <div class="nav-container">
+    <a href="index.html" class="nav-brand">
+      <span class="brand-icon">📚</span>
+      <span class="brand-text"><span class="brand-bca">BCA</span> <span class="brand-accent">STORE</span></span>
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html" class="nav-link active">🏠 Home</a>
+      <a href="my-batches.html" class="nav-link">🎓 My Batch</a>
+      <a href="exam.html" class="nav-link">📝 Exam</a>
+      <a href="semester.html?sem=1" class="nav-link">📖 Subjects</a>
+      <a href="community.html" class="nav-link">🧑‍🤝‍🧑 Community</a>
+      <a href="admin.html" class="nav-link">⚙️ Admin</a>
+      <button class="nav-bookmark-btn" id="navBkBtn" onclick="openBkPanel()" title="My Bookmarks">🔖<span class="bk-count-badge" id="bkBadgeDesktop"></span></button>
+      <button class="dark-toggle" id="darkToggle" title="Toggle Dark Mode">🌙</button>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- ==================== HERO SECTION ==================== -->
+<section class="hero" id="home">
+  <canvas id="heroParticles" style="position:absolute;inset:0;pointer-events:none;z-index:0;"></canvas>
+  <div class="hero-bg-orb orb1"></div>
+  <div class="hero-bg-orb orb2"></div>
+  <div class="hero-content">
+    <div class="hero-badge reveal">🎓 B.R.A BIHAR UNIVERSITY</div>
+    <h1 class="hero-title reveal">
+      <span class="brand-bca">BCA</span> <span class="brand-accent">STORE</span>
+    </h1>
+    <p class="hero-subtitle reveal">The ultimate all-in-one platform for BCA students — Notes, PYQs, Video Lectures &amp; Lab Programs, all in one place.</p>
+    <!-- Search Bar -->
+    <div class="hero-search reveal">
+      <input type="text" id="globalSearch" placeholder="🔍 Search subjects, topics, notes..." autocomplete="off" />
+      <button onclick="performGlobalSearch()" id="searchBtn">Search</button>
+    </div>
+    <!-- Quick action pills -->
+    <div class="quick-actions reveal">
+      <a href="?filter=notes" class="pill-btn pill-blue" onclick="setFilter('notes')">📝 Notes</a>
+      <a href="?filter=pyq" class="pill-btn pill-purple" onclick="setFilter('pyq')">📄 PYQs</a>
+      <a href="?filter=video" class="pill-btn pill-green" onclick="setFilter('video')">🎥 Videos</a>
+      <a href="?filter=lab" class="pill-btn pill-orange" onclick="setFilter('lab')">💻 Labs</a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ==================== REVISION DUE TODAY ==================== -->
+<section class="section revision-section" id="revisionSection" style="display:none;">
+  <div class="container">
+    <div class="section-header">
+      <h2>🔁 Revision Due Today</h2>
+      <p>Spaced repetition — topics scheduled for review</p>
+    </div>
+    <div class="revision-list" id="revisionList"></div>
+  </div>
+</section>
+
+
+<!-- ==================== NOTIFICATIONS SECTION ==================== -->
+<section class="section notifications-section reveal" id="notificationsSection" style="display:none; padding-top:0; padding-bottom:0;">
+  <div class="container">
+    <!-- Ticker Bar (pinned) -->
+    <div class="notif-ticker-bar" id="notifTickerBar" style="display:none;">
+      <div class="notif-ticker-label">📌 PINNED</div>
+      <div class="notif-ticker-track">
+        <div class="notif-ticker-content" id="notifTickerContent"></div>
+      </div>
+    </div>
+    <!-- Section Header -->
+    <div class="notif-section-header">
+      <div class="notif-section-left">
+        <span class="notif-section-icon">🔔</span>
+        <div>
+          <h2 class="notif-section-title">Notifications & Updates</h2>
+          <p class="notif-section-sub">Latest announcements from the admin</p>
+        </div>
+      </div>
+      <div class="notif-count-pill" id="notifCountPill"></div>
+    </div>
+    <!-- Notification Cards -->
+    <div class="notif-cards-grid" id="notifCardsGrid"></div>
+  </div>
+</section>
+
+<!-- ==================== STATS STRIP ==================== -->
+<section class="stats-strip reveal">
+  <div class="container stats-grid">
+    <div class="stat-item">
+      <span class="stat-number" id="statSubjects" data-target="33">0+</span>
+      <span class="stat-label">Subjects</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number" id="statMaterials" data-target="400">0+</span>
+      <span class="stat-label">Study Materials</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number" id="statSemesters" data-target="6">0</span>
+      <span class="stat-label">Semesters</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number" id="statEnrolled" data-target="0">0+</span>
+      <span class="stat-label">Enrolled</span>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SEMESTER CARDS ==================== -->
+<section class="section semesters-section" id="semesters">
+  <div class="container">
+    <div class="section-header">
+      <h2>🎓 Explore our Batches</h2>
+      <p>Structured study batches designed for university excellence</p>
+    </div>
+    <div class="semester-grid reveal-stagger" id="semesterGrid">
+      <!-- Generated by JS -->
+    </div>
+  </div>
+</section>
+
+
+
+<!-- ==================== SYLLABUS SECTION ==================== -->
+<section class="section syllabus-section reveal">
+  <div class="container">
+    <div class="syllabus-banner glass-card reveal-scale">
+      <div class="syllabus-icon-wrap">📑</div>
+      <div class="syllabus-info">
+        <div class="syllabus-badge">Latest Update</div>
+        <h3>BRABU BCA Official Syllabus</h3>
+        <p>Complete course curriculum and mark distribution for all 6 semesters.</p>
+      </div>
+      <a href="https://drive.google.com/file/d/1DxWBj_pj_OPeVCLvi0mgAY3CJPtMzpo6/view?usp=sharing" target="_blank" class="syllabus-download-btn">
+        <span>Download PDF</span>
+        <span class="btn-icon">📥</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ==================== SEARCH RESULTS OVERLAY ==================== -->
+<section class="section" id="searchResultsSection" style="display:none;">
+  <div class="container">
+    <div class="section-header">
+      <h2>🔍 Search Results</h2>
+      <button class="btn-outline" onclick="clearSearch()" style="margin-top:8px;">✕ Clear Search</button>
+    </div>
+    <div class="cards-grid" id="searchResults"></div>
+  </div>
+</section>
+
+<!-- ==================== PROGRESS OVERVIEW ==================== -->
+<section class="section progress-section">
+  <div class="container">
+    <div class="section-header">
+      <h2>📊 Your Progress</h2>
+      <p>Track your completion across all semesters</p>
+    </div>
+    <div class="progress-grid reveal-stagger" id="progressGrid"></div>
+    <div style="text-align:center;margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn-primary" onclick="exportData()">📥 Export My Data</button>
+      <label class="btn-outline" style="cursor:pointer;">
+        📤 Import Data
+        <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)" />
+      </label>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== MINI CHALLENGE ==================== -->
+<section class="section challenge-section reveal">
+  <div class="container">
+    <div class="challenge-card glass-card reveal-scale">
+      <div>
+        <h3>🎮 Daily Mini Challenge</h3>
+        <p>Test your knowledge with 5 random questions</p>
+      </div>
+      <button class="btn-primary" onclick="openChallenge()">Start Challenge →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== VISIT COUNTER ==================== -->
+<section class="visit-counter-section">
+  <div class="container">
+    <div class="vc-card glass-card">
+      <div class="vc-icon">🌍</div>
+      <div class="vc-info">
+        <h3 id="totalVisits">0</h3>
+        <p>Global Students Visited</p>
+      </div>
+      <div class="vc-pulse" title="Live Counter Enabled"></div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h3 class="footer-brand">📚 <span class="brand-bca">BCA</span> <span class="brand-accent">STORE</span></h3>
+        <p>Your one-stop destination for BRABU BCA study materials. Notes, PYQs, and Video Lectures at your fingertips.</p>
+        <div class="footer-socials">
+          <a href="#" title="Facebook">📘</a>
+          <a href="#" title="Instagram">📸</a>
+          <a href="#" title="YouTube">📺</a>
+          <a href="#" title="Telegram">✈️</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <ul class="footer-links">
+          <li><a href="index.html">🏠 Home</a></li>
+          <li><a href="my-batches.html">🎓 My Batch</a></li>
+          <li><a href="exam.html">📝 Exam Pattern</a></li>
+          <li><a href="admin.html">⚙️ Admin</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Support</h4>
+        <ul class="footer-links">
+          <li><a href="#" onclick="openSuggestionModal()">💬 Suggestion</a></li>
+          <li><a href="mailto:vishal@example.com">📧 Contact Us</a></li>
+          <li><a href="#">🛡️ Privacy Policy</a></li>
+          <li><a href="#">📜 Terms of Service</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="dev-credit-box">
+        Designed & Developed with 🖤 by 
+        <a href="Https://real-vishal.netlify.app" target="_blank" class="dev-link">VISHAL 🖤</a>
+      </div>
+      <p>&copy; 2026 BCA STORE. Babasaheb Bhim Rao Ambedkar Bihar University.</p>
+    </div>
+  </div>
+</footer>
+
+<!-- ==================== FLOATING SUGGESTION BUTTON ==================== -->
+
+
+<button class="fab-btn" id="fabSuggestion" onclick="openSuggestionModal()" title="Send Suggestion">
+  <span class="fab-icon">💡</span>
+</button>
+
+<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0, behavior:'smooth'})" title="Back to Top">
+  <span class="btt-icon">↑</span>
+</button>
+
+<!-- ==================== SUGGESTION MODAL ==================== -->
+<div class="modal-overlay" id="suggestionModal">
+  <div class="modal glass-card">
+    <div class="modal-header">
+      <div style="display:flex; gap:16px;">
+        <h3 class="sugg-tab active" id="tabSend" onclick="switchSuggTab('send')">💬 Send Suggestion</h3>
+        <h3 class="sugg-tab" id="tabHistory" onclick="switchSuggTab('history')">📜 My History</h3>
+      </div>
+      <button class="modal-close" onclick="closeSuggestionModal()">✕</button>
+    </div>
+    <div id="suggSendView">
+      <div class="modal-body" id="suggestionBody">
+        <div class="form-group">
+          <label>Your Name</label>
+          <input type="text" id="suggName" placeholder="Enter your name..." />
+        </div>
+        <div class="form-group">
+          <label>Category <span class="required">*</span></label>
+          <select id="suggCategory">
+            <option value="General">✨ General Feedback</option>
+            <option value="Content Missing">📝 Content Missing</option>
+            <option value="Bug Report">🐛 Bug Report</option>
+            <option value="Feature Request">💡 Feature Request</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Your Message <span class="required">*</span></label>
+          <textarea id="suggMessage" placeholder="Describe your suggestion or feedback..." rows="4" maxlength="500" oninput="updateCharCount(this)"></textarea>
+          <div class="char-count" style="text-align:right; font-size:0.75rem; color:var(--text-muted); margin-top:4px;">
+            <span id="charCurrent">0</span>/500
+          </div>
+        </div>
+        <input type="hidden" id="suggContext" value="" />
+      </div>
+      <div class="modal-footer" id="suggestionFooter">
+        <button class="btn-outline" onclick="closeSuggestionModal()">Cancel</button>
+        <button class="btn-primary" onclick="submitSuggestion()">Send Suggestion ✈️</button>
+      </div>
+    </div>
+    <div id="suggHistoryView" style="display:none;">
+      <div class="modal-body" id="suggestionHistoryBody" style="max-height:400px; overflow-y:auto;">
+        <!-- Generated by JS -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn-outline" style="width:100%" onclick="closeSuggestionModal()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== CHALLENGE MODAL ==================== -->
+<div class="modal-overlay" id="challengeModal">
+  <div class="modal glass-card" style="max-width:600px;">
+    <div class="modal-header">
+      <h3>🎮 Daily Challenge</h3>
+      <button class="modal-close" onclick="closeChallenge()">✕</button>
+    </div>
+    <div class="modal-body" id="challengeBody">
+      <!-- Generated by JS -->
+    </div>
+    <div class="modal-footer" id="challengeFooter"></div>
+  </div>
+</div>
+
+
+<!-- ==================== TOAST ==================== -->
+<div class="toast-container" id="toastContainer"></div>
+
+
+<!-- Firebase SDK (compat version for simpler syntax) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="knowledge_data.js"></script>
+<script src="business_comm_data.js"></script>
+<script src="c_programming_data.js"></script>
+<script src="project_data.js"></script>
+<script src="ms_dos_data.js"></script>
+<script src="ms_office_data.js"></script>
+<script src="chat_data.js"></script>
+<script src="c_lab_data.js"></script>
+<script src="ds_data.js"></script>
+<script src="architecture_data.js"></script>
+<script src="html_data.js"></script>
+<script src="cpp_data.js"></script>
+<script src="script.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    initHomePage();
+    initHeroParticles();
+    initWelcomeGateEffects();
+  });
+
+  // ── Welcome Gate Tech Effects ──
+  function initWelcomeGateEffects() {
+    const gate = document.getElementById('welcomeGate');
+    if (!gate || gate.style.display === 'none') return;
+
+    // 1. Matrix Code Rain Canvas
+    initCodeRain();
+    // 2. Floating Code Snippets
+    initFloatingCode();
+    // 3. Terminal Typing Effect
+    initTerminalTyping();
+  }
+
+  // ── Matrix Code Rain ──
+  function initCodeRain() {
+    const canvas = document.getElementById('wgCodeRain');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const chars = '01{}[]()<>=;:./\\|&!?+-*#@$%^const let var function class return if else for while new import export async await try catch promise'.split('');
+    const fontSize = 14;
+    const columns = Math.floor(canvas.width / fontSize);
+    const drops = new Array(columns).fill(1).map(() => Math.random() * -100);
+    const colors = ['#818CF8', '#6366F1', '#A78BFA', '#22D3EE', '#34D399', '#10B981'];
+
+    function draw() {
+      ctx.fillStyle = 'rgba(2, 6, 23, 0.06)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < drops.length; i++) {
+        const char = chars[Math.floor(Math.random() * chars.length)];
+        const color = colors[i % colors.length];
+        const opacity = 0.15 + Math.random() * 0.2;
+        ctx.fillStyle = color.replace(')', `, ${opacity})`).replace('#', '');
+        
+        // Use hex color with alpha via globalAlpha
+        ctx.globalAlpha = opacity;
+        ctx.fillStyle = color;
+        ctx.font = `${fontSize}px 'Courier New', monospace`;
+        ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+        ctx.globalAlpha = 1;
+
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.985) {
+          drops[i] = 0;
+        }
+        drops[i] += 0.4 + Math.random() * 0.3;
+      }
+      requestAnimationFrame(draw);
+    }
+    draw();
+  }
+
+  // ── Floating Code Snippets ──
+  function initFloatingCode() {
+    const container = document.getElementById('wgFloatingCode');
+    if (!container) return;
+
+    const codeSnippets = [
+      'function init() {',
+      'const data = [];',
+      'class Student {',
+      'if (success) {',
+      'return result;',
+      'import React',
+      'async fetch()',
+      'let score = 0;',
+      'while (true) {',
+      'export default',
+      'try { run() }',
+      'for (let i=0;',
+      'npm install',
+      'git commit -m',
+      '// TODO: fix',
+      'console.log()',
+      'SELECT * FROM',
+      'CREATE TABLE',
+      '<div class="">',
+      'addEventListener',
+      'Promise.all()',
+      'Array.map(fn)',
+      '.filter(x =>',
+      'useState(null)',
+      'def main():',
+      'print("Hello")',
+      '#include <io>',
+      'public static',
+      'int main() {',
+      'void setup() {',
+    ];
+
+    function createSnippet() {
+      const el = document.createElement('div');
+      el.className = 'wg-code-snippet';
+      el.textContent = codeSnippets[Math.floor(Math.random() * codeSnippets.length)];
+      
+      const startSide = Math.random() > 0.5 ? 'left' : 'right';
+      const topPos = 5 + Math.random() * 85;
+      const duration = 12 + Math.random() * 18;
+      const delay = Math.random() * 2;
+      const size = 0.65 + Math.random() * 0.35;
+
+      el.style.cssText = `
+        top: ${topPos}%;
+        ${startSide}: -220px;
+        animation: wgFloat${startSide === 'left' ? 'Right' : 'Left'} ${duration}s linear ${delay}s forwards;
+        font-size: ${size}rem;
+        opacity: 0;
+      `;
+
+      container.appendChild(el);
+      setTimeout(() => el.remove(), (duration + delay) * 1000);
+    }
+
+    // Create initial batch
+    for (let i = 0; i < 8; i++) {
+      setTimeout(() => createSnippet(), i * 800);
+    }
+    // Keep spawning
+    setInterval(createSnippet, 2500);
+  }
+
+  // ── Terminal Typing Effect ──
+  function initTerminalTyping() {
+    const textEl = document.getElementById('wgTermText');
+    if (!textEl) return;
+
+    const commands = [
+      'npm run study --mode=expert',
+      'git clone bca-knowledge.git',
+      'python3 solve_assignment.py',
+      'javac MainProgram.java',
+      'gcc -o output program.c',
+      'node server.js --port=3000',
+      'SELECT * FROM students;',
+      'docker run bca-lab:latest',
+      'pip install numpy pandas',
+      'cat /etc/success > result',
+    ];
+
+    let cmdIdx = 0;
+    let charIdx = 0;
+    let isDeleting = false;
+    let pause = 0;
+
+    function type() {
+      const cmd = commands[cmdIdx];
+      if (pause > 0) { pause--; requestAnimationFrame(type); return; }
+
+      if (!isDeleting) {
+        textEl.textContent = cmd.substring(0, charIdx + 1);
+        charIdx++;
+        if (charIdx >= cmd.length) {
+          isDeleting = true;
+          pause = 120; // pause at end
+        }
+      } else {
+        textEl.textContent = cmd.substring(0, charIdx - 1);
+        charIdx--;
+        if (charIdx <= 0) {
+          isDeleting = false;
+          cmdIdx = (cmdIdx + 1) % commands.length;
+          pause = 30;
+        }
+      }
+      setTimeout(() => requestAnimationFrame(type), isDeleting ? 30 : 60);
+    }
+    setTimeout(type, 1500);
+  }
+
+  // ── Hero Particle Canvas (Advanced Tech-Glow Version) ──
+  function initHeroParticles() {
+    const canvas = document.getElementById('heroParticles');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    const mouse = { x: null, y: null, radius: 150 };
+
+    function resize() { 
+      canvas.width = canvas.offsetWidth; 
+      canvas.height = canvas.offsetHeight; 
+      initParticles();
+    }
+    
+    window.addEventListener('mousemove', e => {
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
+    });
+
+    window.addEventListener('mouseleave', () => {
+      mouse.x = null;
+      mouse.y = null;
+    });
+
+    resize();
+    window.addEventListener('resize', resize);
+    
+    const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark';
+    
+    function initParticles() {
+      particles = [];
+      const count = window.innerWidth < 768 ? 40 : 100;
+      const symbols = ['{', '}', '/', '*', '1', '0', '<', '>', '_'];
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          r: Math.random() * 2 + 0.5,
+          dx: (Math.random() - 0.5) * 0.6,
+          dy: (Math.random() - 0.5) * 0.6,
+          o: Math.random() * 0.6 + 0.1,
+          symbol: symbols[Math.floor(Math.random() * symbols.length)],
+          isSymbol: Math.random() > 0.8
+        });
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const baseColor = isDark() ? '129,140,248' : '99,102,241';
+      
+      particles.forEach(p => {
+        // Interaction: Repel from mouse
+        if (mouse.x !== null) {
+          const dx = mouse.x - p.x;
+          const dy = mouse.y - p.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < mouse.radius) {
+            const force = (mouse.radius - distance) / mouse.radius;
+            const dirX = dx / distance;
+            const dirY = dy / distance;
+            p.x -= dirX * force * 2.5;
+            p.y -= dirY * force * 2.5;
+          }
+        }
+
+        ctx.beginPath();
+        if (p.isSymbol) {
+          ctx.font = `${Math.floor(p.r * 6)}px monospace`;
+          ctx.fillStyle = `rgba(${baseColor}, ${p.o})`;
+          ctx.fillText(p.symbol, p.x, p.y);
+        } else {
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${baseColor}, ${p.o})`;
+          ctx.fill();
+        }
+        
+        // Glow effect for dark mode
+        if (isDark()) {
+          ctx.shadowBlur = 4;
+          ctx.shadowColor = `rgba(${baseColor}, ${p.o})`;
+        } else {
+          ctx.shadowBlur = 0;
+        }
+
+        p.x += p.dx; p.y += p.dy;
+        
+        // Wrap around instead of bouncing for a "flowing" feel
+        if (p.x < -10) p.x = canvas.width + 10;
+        if (p.x > canvas.width + 10) p.x = -10;
+        if (p.y < -10) p.y = canvas.height + 10;
+        if (p.y > canvas.height + 10) p.y = -10;
+      });
+
+      // Draw connecting lines with proximity glow
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 130) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            const lineOpacity = (0.15 * (1 - dist/130));
+            ctx.strokeStyle = `rgba(${baseColor}, ${lineOpacity})`;
+            ctx.lineWidth = 0.6;
+            ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(draw);
+    }
+    draw();
+  }
+</script>
+
+</body>
+</html>

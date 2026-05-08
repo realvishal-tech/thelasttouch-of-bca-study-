@@ -1,0 +1,324 @@
+/* ============================================================
+   ADMIN LOGIN — Ultra-Polished SaaS UI
+   A perfect, symmetrical, and consistent design system
+   ============================================================ */
+
+:root {
+  --alp-primary: #6366f1;
+  --alp-primary-hover: #4f46e5;
+  --alp-bg: #020617;
+  --alp-card-bg: rgba(15, 23, 42, 0.7);
+  --alp-border: rgba(255, 255, 255, 0.08);
+  --alp-text: #f8fafc;
+  --alp-text-muted: #94a3b8;
+  --alp-input-bg: rgba(2, 6, 23, 0.4);
+  --alp-radius: 20px;
+  --alp-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.admin-login-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--alp-bg);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: var(--alp-text);
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Background Visuals */
+.alp-bg-glow {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.alp-glow-1 {
+  position: absolute;
+  top: -10%; left: -10%;
+  width: 60vw; height: 60vh;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.15), transparent 70%);
+  filter: blur(100px);
+}
+.alp-glow-2 {
+  position: absolute;
+  bottom: -10%; right: -10%;
+  width: 50vw; height: 50vh;
+  background: radial-gradient(circle, rgba(147, 51, 234, 0.1), transparent 70%);
+  filter: blur(80px);
+}
+
+/* Layout Shell */
+.alp-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  position: relative;
+  z-index: 10;
+}
+
+/* The Auth Card */
+.alp-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--alp-card-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--alp-border);
+  border-radius: var(--alp-radius);
+  padding: 48px;
+  box-shadow: var(--alp-shadow);
+  animation: alpCardFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transition: border-color 0.3s ease;
+}
+
+@keyframes alpCardFade {
+  from { opacity: 0; transform: translateY(20px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Logo & Branding */
+.alp-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+.alp-logo-wrap {
+  width: 68px;
+  height: 68px;
+  background: linear-gradient(135deg, var(--alp-primary), #8b5cf6);
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin: 0 auto 20px;
+  box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+}
+.alp-header h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+  background: linear-gradient(to bottom, #fff, #94a3b8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.alp-header p {
+  color: var(--alp-text-muted);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+/* Form Styling */
+.alp-form-group {
+  margin-bottom: 24px;
+}
+.alp-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--alp-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 10px;
+  margin-left: 2px;
+}
+.alp-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.alp-input-icon {
+  position: absolute;
+  left: 16px;
+  color: #64748b;
+  font-size: 1.1rem;
+  pointer-events: none;
+  transition: color 0.3s;
+}
+.alp-input {
+  width: 100%;
+  height: 52px;
+  background: var(--alp-input-bg);
+  border: 1.5px solid var(--alp-border);
+  border-radius: 14px;
+  padding: 0 16px 0 48px;
+  color: #fff;
+  font-size: 1rem;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.25s ease;
+}
+.alp-input:focus {
+  border-color: var(--alp-primary);
+  background: rgba(2, 6, 23, 0.6);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+.alp-input:focus + .alp-input-icon {
+  color: var(--alp-primary);
+}
+
+.alp-toggle-pass {
+  position: absolute;
+  right: 14px;
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 8px;
+  font-size: 1.1rem;
+  transition: color 0.2s;
+  display: flex;
+}
+.alp-toggle-pass:hover { color: #fff; }
+
+/* Action Row (Checkbox & Forgot) */
+.alp-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 30px;
+}
+.alp-remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  color: var(--alp-text-muted);
+  user-select: none;
+}
+.alp-remember input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--alp-primary);
+  cursor: pointer;
+}
+.alp-forgot {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--alp-primary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.alp-forgot:hover { color: #a5b4fc; }
+
+/* Primary Button */
+.alp-btn {
+  width: 100%;
+  height: 54px;
+  background: linear-gradient(135deg, var(--alp-primary), #7c3aed);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
+}
+.alp-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px rgba(99, 102, 241, 0.4);
+  filter: brightness(1.1);
+}
+.alp-btn:active { transform: translateY(0) scale(0.98); }
+
+.alp-btn-loader {
+  width: 22px;
+  height: 22px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: alpSpin 0.8s linear infinite;
+  display: none;
+}
+@keyframes alpSpin { to { transform: rotate(360deg); } }
+
+/* Feedback Area */
+.alp-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  padding: 14px;
+  border-radius: 14px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-bottom: 28px;
+  display: none;
+  align-items: center;
+  gap: 12px;
+  animation: alpShake 0.4s ease;
+}
+@keyframes alpShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* Footer Section */
+.alp-footer {
+  text-align: center;
+  padding: 40px 20px;
+  margin-top: auto;
+  border-top: 1px solid var(--alp-border);
+  background: rgba(2, 6, 23, 0.3);
+}
+.alp-footer-text {
+  font-size: 0.88rem;
+  color: var(--alp-text-muted);
+  margin-bottom: 12px;
+}
+.alp-footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--alp-text-muted);
+  margin-bottom: 20px;
+}
+.alp-footer-links a { color: inherit; text-decoration: none; transition: color 0.2s; }
+.alp-footer-links a:hover { color: #fff; }
+
+.alp-dev-credit {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 8px 18px;
+  border-radius: 99px;
+  border: 1px solid var(--alp-border);
+}
+.alp-dev-link {
+  color: var(--alp-primary);
+  text-decoration: none;
+  font-weight: 800;
+}
+
+/* PC vs Mobile Refinement */
+@media (max-width: 480px) {
+  .alp-card {
+    padding: 40px 24px;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+  .alp-container { padding: 20px 0; align-items: flex-start; }
+  .alp-logo-wrap { width: 60px; height: 60px; font-size: 1.75rem; }
+  .alp-header h1 { font-size: 1.5rem; }
+}
+
+@media (max-height: 720px) {
+  .alp-container { padding: 20px; }
+  .alp-header { margin-bottom: 30px; }
+  .alp-card { padding: 32px 40px; }
+}

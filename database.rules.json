@@ -1,0 +1,32 @@
+{
+  "rules": {
+    ".read": true,
+    "materials": {
+      ".write": true
+    },
+    "suggestions": {
+      ".write": true
+    },
+    "visitors": {
+      ".write": true
+    },
+    "community_users": {
+      ".write": true
+    },
+    "community_doubts": {
+      ".write": true
+    },
+    "community_chat": {
+      ".write": true
+    },
+    "community_announcements": {
+      ".write": true
+    },
+    "community_typing": {
+      ".write": true
+    },
+    "community_online": {
+      ".write": true
+    }
+  }
+}
