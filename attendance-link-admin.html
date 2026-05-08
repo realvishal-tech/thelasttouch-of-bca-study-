@@ -669,7 +669,7 @@
             Semester1: [
                 "Mathematical Foundation (BCA-101)",
                 "Computer Fundamentals (BCA-102)",
-                "Business Communication (BCA-103)",
+                "Business Communication & Information System (BCA-103)",
                 "C Programming (BCA-104)",
                 "Lab on DOS & Windows (BCA-105)",
                 "Lab on C (BCA-106)"
@@ -680,31 +680,31 @@
                 "Data Structure through C (BCA-203)",
                 "System Analysis and Design (BCA-204)",
                 "Lab on MS-Office (BCA-205)",
-                "Lab on Data Structure (BCA-206)"
+                "Lab on Data Structure through C (BCA-206)"
             ],
             Semester3: [
-                "Management & Business Accounting (BCA-301)",
+                "Fundamentals of Management & Business Accounting (BCA-301)",
                 "Database Management System (BCA-302)",
-                "Object Oriented Programming C++ (BCA-303)",
+                "Object Oriented Programming using C++ (BCA-303)",
                 "Numerical Methodology (BCA-304)",
-                "Lab on DBMS (BCA-305)",
+                "Lab on DBMS (SQL/MS-ACCESS) (BCA-305)",
                 "Lab on C++ (BCA-306)"
             ],
             Semester4: [
                 "Java Programming (BCA-401)",
                 "Computer Graphics & Multimedia (BCA-402)",
                 "Operating System & Linux (BCA-403)",
-                "Software Engineering Principles (BCA-404)",
+                "Software Engineering, Principles (BCA-404)",
                 "Lab on Java Programming (BCA-405)",
-                "Lab on Computer Graphics (BCA-406)"
+                "Lab on Computer Graphics & Linux (BCA-406)"
             ],
             Semester5: [
-                "Relational DBMS (BCA-501)",
-                "Artificial Intelligence Python (BCA-502)",
-                "Web Technology (BCA-503)",
-                "Computer Network & Security (BCA-504)",
+                "Relational Database Management System (BCA-501)",
+                "Artificial Intelligence through Python Programming (BCA-502)",
+                "Web Technology (HTML, Java Script, CSS) (BCA-503)",
+                "Computer Network, Security and Cyber Law (BCA-504)",
                 "Lab on Oracle (BCA-505)",
-                "Lab on Python & Web Tech (BCA-506)"
+                "Lab on Python Programming & Web Technology (BCA-506)"
             ],
             Semester6: [
                 "Project Report (BCA-601)",
@@ -776,7 +776,7 @@
             }
         }
 
-        function startExpiryTimer() {
+        function startExpiryTimer(initialLinkData) {
             // If a previous realtime listener exists, cancel it
             if (currentTimer && typeof currentTimer === 'string') {
                 attendanceLinkSystem.cancelLinkListener(currentTimer);
@@ -802,23 +802,22 @@
             });
             // store token as currentTimer marker so we can cancel when needed
             currentTimer = token;
-            }
+        }
 
-            function updateTimerDisplay(expiryAt) {
-                const remaining = attendanceLinkSystem.getTimeRemaining(expiryAt);
-                const timerEl = document.getElementById('expireTimer');
+        function updateTimerDisplay(expiryAt) {
+            const remaining = attendanceLinkSystem.getTimeRemaining(expiryAt);
+            const timerEl = document.getElementById('expireTimer');
 
-                if (remaining.expired) {
-                    timerEl.textContent = 'EXPIRED';
-                    timerEl.classList.add('expired');
-                } else if (remaining.minutes === 0) {
-                    timerEl.textContent = `${remaining.seconds}s`;
-                    timerEl.classList.add('expiring');
-                } else {
-                    timerEl.textContent = remaining.message;
-                    timerEl.classList.remove('expiring');
-                    timerEl.classList.remove('expired');
-                }
+            if (remaining.expired) {
+                timerEl.textContent = 'EXPIRED';
+                timerEl.classList.add('expired');
+            } else if (remaining.minutes === 0) {
+                timerEl.textContent = `${remaining.seconds}s`;
+                timerEl.classList.add('expiring');
+            } else {
+                timerEl.textContent = remaining.message;
+                timerEl.classList.remove('expiring');
+                timerEl.classList.remove('expired');
             }
         }
 
